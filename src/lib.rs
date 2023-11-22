@@ -288,3 +288,83 @@ pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
 
     Ok(lon)
 }
+
+/// 度分秒
+pub struct DMS {
+    /// 度
+    degree: u16,
+    /// 分
+    minute: u8,
+    /// 秒
+    second: f64,
+}
+
+impl DMS {
+    /// 度分秒を作成する。
+    ///
+    /// # 引数
+    ///
+    /// * `degree` - 度
+    /// * `minute` - 分
+    /// * `second` - 秒
+    ///
+    /// # 戻り値
+    ///
+    /// 度分秒
+    pub fn new(degree: u16, minute: u8, second: f64) -> Self {
+        Self {
+            degree,
+            minute,
+            second,
+        }
+    }
+
+    /// 度を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 度
+    pub fn degree(self) -> u16 {
+        self.degree
+    }
+
+    /// 分を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 分
+    pub fn minute(self) -> u8 {
+        self.minute
+    }
+
+    /// 秒を返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 秒
+    pub fn second(self) -> f64 {
+        self.second
+    }
+
+    /// 緯度に変換する。
+    ///
+    /// # 戻り値
+    ///
+    /// 緯度
+    pub fn to_lat(self) -> Result<f64, GSJPError> {
+        let lat = self.degree as f64 + self.minute as f64 / 60.0 + self.second / 3600.0;
+
+        validate_lat(lat)
+    }
+
+    /// 経度に変換する。
+    ///
+    /// # 戻り値
+    ///
+    /// 経度
+    pub fn to_lon(self) -> Result<f64, GSJPError> {
+        let lon = self.degree as f64 + self.minute as f64 / 60.0 + self.second / 3600.0;
+
+        validate_lon(lon)
+    }
+}
