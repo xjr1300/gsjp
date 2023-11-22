@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
-pub mod mesh;
+mod mesh1;
+pub use mesh1::Mesh1;
 
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
