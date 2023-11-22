@@ -10,9 +10,14 @@ pub use mesh1::Mesh1;
 /// | 最西端 | 沖縄県 与那国島 | 122°55′57″ | 24°27′05″ |
 /// | 最南端 | 東京都 沖ノ鳥島| 136°04′11″ | 20°25′31″ |
 /// | 最北端 | 北海道 択捉島 | 148°45′08″ | 45°33′26″ |
+///
+/// メッシュの北端の緯度（度単位）
 pub const NORTHERNMOST: f64 = 46.0;
+/// メッシュの南端の緯度（度単位）
 pub const SOUTHERNMOST: f64 = 20.0;
-pub const EASTERNMOST: f64 = 154.0;
+/// メッシュの東端の経度（度単位）
+pub const EASTERNMOST: f64 = 155.0;
+/// メッシュの西端の経度（度単位）
 pub const WESTERNMOST: f64 = 122.0;
 
 /// メッシュトレイト
@@ -294,7 +299,7 @@ pub enum GSJPError {
 ///
 /// 緯度（度単位）
 pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
-    if !(SOUTHERNMOST..=NORTHERNMOST).contains(&lat) {
+    if !(-90.0..=90.0).contains(&lat) {
         return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
     }
 
@@ -311,7 +316,7 @@ pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
 ///
 /// 経度（度単位）
 pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
-    if !(WESTERNMOST..=EASTERNMOST).contains(&lon) {
+    if !(-180.0..=180.0).contains(&lon) {
         return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
     }
 
@@ -328,42 +333,42 @@ pub mod tests {
 
     #[test]
     fn test_validate_lat() {
-        assert!(validate_lat(SOUTHERNMOST).is_ok());
-        assert!(validate_lat(NORTHERNMOST).is_ok());
+        assert!(validate_lat(90.0).is_ok());
+        assert!(validate_lat(-90.0).is_ok());
     }
 
     #[test]
     fn validate_lat_err() {
-        assert!(validate_lat(SOUTHERNMOST - 1e-8).is_err());
-        assert!(validate_lat(NORTHERNMOST + 1e-8).is_err());
+        assert!(validate_lat(90.0 + 1e-8).is_err());
+        assert!(validate_lat(-90.0 - 1e-8).is_err());
     }
 
     #[test]
     fn validate_lon_ok() {
-        assert!(validate_lon(WESTERNMOST).is_ok());
-        assert!(validate_lon(EASTERNMOST).is_ok());
+        assert!(validate_lon(-180.0).is_ok());
+        assert!(validate_lon(180.0).is_ok());
     }
 
     #[test]
     fn validate_lon_err() {
-        assert!(validate_lon(WESTERNMOST - 1e-8).is_err());
-        assert!(validate_lon(EASTERNMOST + 1e-8).is_err());
+        assert!(validate_lon(-180.0 - 1e-8).is_err());
+        assert!(validate_lon(180.0 + 1e-8).is_err());
     }
 
     #[test]
     fn coordinate_new_ok() {
-        assert!(Coordinate::new(NORTHERNMOST, WESTERNMOST).is_ok());
-        assert!(Coordinate::new(NORTHERNMOST, EASTERNMOST).is_ok());
-        assert!(Coordinate::new(SOUTHERNMOST, WESTERNMOST).is_ok());
-        assert!(Coordinate::new(SOUTHERNMOST, EASTERNMOST).is_ok());
+        assert!(Coordinate::new(90.0, -180.0).is_ok());
+        assert!(Coordinate::new(90.0, 180.0).is_ok());
+        assert!(Coordinate::new(-90.0, -180.0).is_ok());
+        assert!(Coordinate::new(-90.0, 180.0).is_ok());
     }
 
     #[test]
     fn coordinate_new_err() {
-        assert!(Coordinate::new(NORTHERNMOST + 1e-8, WESTERNMOST).is_err());
-        assert!(Coordinate::new(NORTHERNMOST, WESTERNMOST - 1e-8).is_err());
-        assert!(Coordinate::new(SOUTHERNMOST - 1e-8, WESTERNMOST).is_err());
-        assert!(Coordinate::new(SOUTHERNMOST, EASTERNMOST + 1e-8).is_err());
+        assert!(Coordinate::new(90.0 + 1e-8, -180.0).is_err());
+        assert!(Coordinate::new(90.0, -180.0 - 1e-8).is_err());
+        assert!(Coordinate::new(-90.0 - 1e-8, 180.0).is_err());
+        assert!(Coordinate::new(-90.0, 180.0 + 1e-8).is_err());
     }
 
     #[test]

@@ -1,4 +1,4 @@
-use crate::{GSJPError, Mesh};
+use crate::{GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
 /// 第1次地域メッシュの南端と北端の緯度の差
 const MESH1_LAT_DIFF: f64 = 40.0 / 60.0; // 40分
@@ -6,10 +6,16 @@ const MESH1_LON_DIFF: f64 = 1.0; // 1度
 
 /// 第1次地域メッシュ
 ///
-/// 緯度の範囲を20度から46度までとする。
-/// 経度の範囲を122度から154度までとする。
-///
+/// 緯度は20度から46度まで、経度は122度から155度までの範囲を表現する。
 /// メッシュコードは、メッシュの南西端の緯度と経度で決まる。
+///
+/// よって、第1次地域メッシュのコードは次の通り。
+///
+/// * 北東端の第1次地域メッシュのコードは`6854`
+/// * 南東端の第1次地域メッシュのコードは`3054`
+/// * 南西端の第1次地域メッシュのコードは`3022`
+/// * 北西端の第1次地域メッシュのコードは`6822`
+///
 /// 南西端の緯度が36度の場合、36 * 1.5 = 54となる。
 /// 南西端の経度が138度の場合、138 - 100 = 38となる。
 /// この第1次地域メッシュのメッシュコードは、5438となる。
@@ -102,16 +108,16 @@ fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
     let lat = &code[0..2];
     let lon = &code[2..4];
 
-    // 緯度の範囲を24度から46度までとして、緯度部分を検証
-    let lat_min = ((20.0 * 1.5) as u8).to_string();
-    let lat_max = ((46.0 * 1.5) as u8).to_string();
+    // 緯度の範囲を20度から46度までとして、緯度部分を検証
+    let lat_min = ((SOUTHERNMOST * 1.5) as u8).to_string();
+    let lat_max = (((NORTHERNMOST - MESH1_LAT_DIFF) * 1.5) as u8).to_string();
     if lat < &lat_min || lat > &lat_max {
         return Err(GSJPError::InvalidMeshCode);
     }
 
     // 経度の範囲を122度から154度までとして、経度部分を検証
-    let lon_min = (122 % 100).to_string();
-    let lon_max = (154 % 100).to_string();
+    let lon_min = (WESTERNMOST as u8 % 100).to_string();
+    let lon_max = ((EASTERNMOST - MESH1_LON_DIFF) as u8 % 100).to_string();
     if lon < &lon_min || lon > &lon_max {
         return Err(GSJPError::InvalidMeshCode);
     }
@@ -131,29 +137,29 @@ mod tests {
     #[test]
     fn validate_mesh1_code_ok() {
         assert!(validate_mesh1_code("3022").is_ok());
-        assert!(validate_mesh1_code("6954").is_ok());
+        assert!(validate_mesh1_code("6854").is_ok());
     }
 
     #[test]
     fn validate_mesh1_code_err() {
         assert!(validate_mesh1_code("2922").is_err());
         assert!(validate_mesh1_code("3021").is_err());
-        assert!(validate_mesh1_code("7054").is_err());
-        assert!(validate_mesh1_code("6955").is_err());
+        assert!(validate_mesh1_code("6954").is_err());
+        assert!(validate_mesh1_code("6855").is_err());
     }
 
     #[test]
     fn mesh1_new_ok() {
         assert!(Mesh1::new(String::from("3022")).is_ok());
-        assert!(Mesh1::new(String::from("6954")).is_ok());
+        assert!(Mesh1::new(String::from("6854")).is_ok());
     }
 
     #[test]
     fn mesh1_new_err() {
         assert!(Mesh1::new(String::from("2922")).is_err());
         assert!(Mesh1::new(String::from("3021")).is_err());
-        assert!(Mesh1::new(String::from("7054")).is_err());
-        assert!(Mesh1::new(String::from("6955")).is_err());
+        assert!(Mesh1::new(String::from("6954")).is_err());
+        assert!(Mesh1::new(String::from("6855")).is_err());
     }
 
     #[test]
@@ -342,7 +348,7 @@ mod tests {
 
     #[test]
     fn mesh1_north_mesh_err() {
-        let mesh = Mesh1::new(String::from("6922")).unwrap();
+        let mesh = Mesh1::new(String::from("6822")).unwrap();
         assert!(mesh.north_mesh().is_err());
     }
 
