@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+pub mod mesh;
+
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
 /// | --- | --- | --- | --- |
@@ -7,13 +9,35 @@ use std::borrow::Cow;
 /// | 最西端 | 沖縄県 与那国島 | 122°55′57″ | 24°27′05″ |
 /// | 最南端 | 東京都 沖ノ鳥島| 136°04′11″ | 20°25′31″ |
 /// | 最北端 | 北海道 択捉島 | 148°45′08″ | 45°33′26″ |
-pub const NORTHERNMOST_LAT: f64 = 45.0 + 33.0 / 60.0 + 26.0 / 3600.0;
-pub const SOUTHERNMOST_LAT: f64 = 20.0 + 25.0 / 60.0 + 31.0 / 3600.0;
-pub const EASTERNMOST_LON: f64 = 153.0 + 59.0 / 60.0 + 12.0 / 3600.0;
-pub const WESTERNMOST_LON: f64 = 122.0 + 55.0 / 60.0 + 57.0 / 3600.0;
+pub const NORTHERNMOST: f64 = 46.0;
+pub const SOUTHERNMOST: f64 = 20.0;
+pub const EASTERNMOST: f64 = 154.0;
+pub const WESTERNMOST: f64 = 122.0;
 
 /// メッシュトレイト
 pub trait Mesh: Sized {
+    /// メッシュを作成する。
+    ///
+    /// # 引数
+    ///
+    /// * `code` - メッシュコード
+    ///
+    /// # 戻り値
+    ///
+    /// メッシュ
+    fn new(code: String) -> Result<Self, GSJPError>;
+
+    /// 指定された座標を含むメッシュを作成する。
+    ///
+    /// # 引数
+    ///
+    /// * `coord` - 座標
+    ///
+    /// # 戻り値
+    ///
+    /// メッシュ
+    fn from_coordinate(coord: Coordinate) -> Self;
+
     /// メッシュコードを返す。
     ///
     /// # 戻り値
@@ -102,36 +126,36 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// 北隣のメッシュ
-    fn north_mesh(&self) -> Self;
+    fn north_mesh(&self) -> Result<Self, GSJPError>;
 
     /// 東隣のメッシュを返す。
     ///
     /// # 戻り値
     ///
     /// 東隣のメッシュ
-    fn east_mesh(&self) -> Self;
+    fn east_mesh(&self) -> Result<Self, GSJPError>;
 
     /// 南隣のメッシュを返す。
     ///
     /// # 戻り値
     ///
     /// 南隣のメッシュ
-    fn south_mesh(&self) -> Self;
+    fn south_mesh(&self) -> Result<Self, GSJPError>;
 
     /// 西隣のメッシュを返す。
     ///
     /// # 戻り値
     ///
     /// 西隣のメッシュ
-    fn west_mesh(&self) -> Self;
+    fn west_mesh(&self) -> Result<Self, GSJPError>;
 
     /// 北東隣のメッシュを返す。
     ///
     /// # 戻り値
     ///
     /// 北東隣のメッシュ
-    fn north_east_mesh(&self) -> Self {
-        self.north_mesh().east_mesh()
+    fn north_east_mesh(&self) -> Result<Self, GSJPError> {
+        self.north_mesh()?.east_mesh()
     }
 
     /// 南東隣のメッシュを返す。
@@ -139,8 +163,8 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// 南東隣のメッシュ
-    fn south_east_mesh(&self) -> Self {
-        self.south_mesh().east_mesh()
+    fn south_east_mesh(&self) -> Result<Self, GSJPError> {
+        self.south_mesh()?.east_mesh()
     }
 
     /// 南西隣のメッシュを返す。
@@ -148,8 +172,8 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// 南西隣のメッシュ
-    fn south_west_mesh(&self) -> Self {
-        self.south_mesh().west_mesh()
+    fn south_west_mesh(&self) -> Result<Self, GSJPError> {
+        self.south_mesh()?.west_mesh()
     }
 
     /// 北西隣のメッシュを返す。
@@ -157,8 +181,8 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// 北西隣のメッシュ
-    fn north_west_mesh(&self) -> Self {
-        self.north_mesh().west_mesh()
+    fn north_west_mesh(&self) -> Result<Self, GSJPError> {
+        self.north_mesh()?.west_mesh()
     }
 
     /// メッシュが隣り合っているか確認する。
@@ -172,21 +196,22 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// メッシュが隣り合っているかを示す`NeighborDirection`列挙型。
-    fn is_neighboring(&self, mesh: &Self) -> NeighborDirection {
-        if self.north_mesh().code() == mesh.code() {
-            return NeighborDirection::North;
-        } else if self.east_mesh().code() == mesh.code() {
-            return NeighborDirection::East;
-        } else if self.south_mesh().code() == mesh.code() {
-            return NeighborDirection::South;
-        } else if self.west_mesh().code() == mesh.code() {
-            return NeighborDirection::West;
+    fn is_neighboring(&self, mesh: &Self) -> Result<NeighborDirection, GSJPError> {
+        if self.north_mesh()?.code() == mesh.code() {
+            return Ok(NeighborDirection::North);
+        } else if self.east_mesh()?.code() == mesh.code() {
+            return Ok(NeighborDirection::East);
+        } else if self.south_mesh()?.code() == mesh.code() {
+            return Ok(NeighborDirection::South);
+        } else if self.west_mesh()?.code() == mesh.code() {
+            return Ok(NeighborDirection::West);
         }
 
-        NeighborDirection::None
+        Ok(NeighborDirection::None)
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// 隣にあるメッシュの方向
 pub enum NeighborDirection {
     /// 隣り合っていない
@@ -253,6 +278,9 @@ pub enum GSJPError {
     /// 座標が範囲外
     #[error("{0}")]
     OutOfRange(Cow<'static, str>),
+    /// メッシュコードが不正
+    #[error("メッシュコードが不正です。")]
+    InvalidMeshCode,
 }
 
 /// 緯度を検証する。
@@ -265,7 +293,7 @@ pub enum GSJPError {
 ///
 /// 緯度（度単位）
 pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
-    if !(SOUTHERNMOST_LAT..=NORTHERNMOST_LAT).contains(&lat) {
+    if !(SOUTHERNMOST..=NORTHERNMOST).contains(&lat) {
         return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
     }
 
@@ -282,7 +310,7 @@ pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
 ///
 /// 経度（度単位）
 pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
-    if !(WESTERNMOST_LON..=EASTERNMOST_LON).contains(&lon) {
+    if !(WESTERNMOST..=EASTERNMOST).contains(&lon) {
         return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
     }
 
@@ -372,54 +400,58 @@ impl DMS {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
+
+    pub fn eq_f64(expected: f64, actual: f64) -> bool {
+        (expected - actual).abs() < 1e-8
+    }
 
     #[test]
     fn test_validate_lat() {
-        assert!(validate_lat(SOUTHERNMOST_LAT).is_ok());
-        assert!(validate_lat(NORTHERNMOST_LAT).is_ok());
+        assert!(validate_lat(SOUTHERNMOST).is_ok());
+        assert!(validate_lat(NORTHERNMOST).is_ok());
     }
 
     #[test]
     fn validate_lat_err() {
-        assert!(validate_lat(SOUTHERNMOST_LAT - 1e-8).is_err());
-        assert!(validate_lat(NORTHERNMOST_LAT + 1e-8).is_err());
+        assert!(validate_lat(SOUTHERNMOST - 1e-8).is_err());
+        assert!(validate_lat(NORTHERNMOST + 1e-8).is_err());
     }
 
     #[test]
     fn validate_lon_ok() {
-        assert!(validate_lon(WESTERNMOST_LON).is_ok());
-        assert!(validate_lon(EASTERNMOST_LON).is_ok());
+        assert!(validate_lon(WESTERNMOST).is_ok());
+        assert!(validate_lon(EASTERNMOST).is_ok());
     }
 
     #[test]
     fn validate_lon_err() {
-        assert!(validate_lon(WESTERNMOST_LON - 1e-8).is_err());
-        assert!(validate_lon(EASTERNMOST_LON + 1e-8).is_err());
+        assert!(validate_lon(WESTERNMOST - 1e-8).is_err());
+        assert!(validate_lon(EASTERNMOST + 1e-8).is_err());
     }
 
     #[test]
     fn coordinate_new_ok() {
-        assert!(Coordinate::new(NORTHERNMOST_LAT, WESTERNMOST_LON).is_ok());
-        assert!(Coordinate::new(NORTHERNMOST_LAT, EASTERNMOST_LON).is_ok());
-        assert!(Coordinate::new(SOUTHERNMOST_LAT, WESTERNMOST_LON).is_ok());
-        assert!(Coordinate::new(SOUTHERNMOST_LAT, EASTERNMOST_LON).is_ok());
+        assert!(Coordinate::new(NORTHERNMOST, WESTERNMOST).is_ok());
+        assert!(Coordinate::new(NORTHERNMOST, EASTERNMOST).is_ok());
+        assert!(Coordinate::new(SOUTHERNMOST, WESTERNMOST).is_ok());
+        assert!(Coordinate::new(SOUTHERNMOST, EASTERNMOST).is_ok());
     }
 
     #[test]
     fn coordinate_new_err() {
-        assert!(Coordinate::new(NORTHERNMOST_LAT + 1e-8, WESTERNMOST_LON).is_err());
-        assert!(Coordinate::new(NORTHERNMOST_LAT, WESTERNMOST_LON - 1e-8).is_err());
-        assert!(Coordinate::new(SOUTHERNMOST_LAT - 1e-8, WESTERNMOST_LON).is_err());
-        assert!(Coordinate::new(SOUTHERNMOST_LAT, EASTERNMOST_LON + 1e-8).is_err());
+        assert!(Coordinate::new(NORTHERNMOST + 1e-8, WESTERNMOST).is_err());
+        assert!(Coordinate::new(NORTHERNMOST, WESTERNMOST - 1e-8).is_err());
+        assert!(Coordinate::new(SOUTHERNMOST - 1e-8, WESTERNMOST).is_err());
+        assert!(Coordinate::new(SOUTHERNMOST, EASTERNMOST + 1e-8).is_err());
     }
 
     #[test]
     fn coordinate_lat_lon_ok() {
         let coordinate = Coordinate::new(35.0, 135.0).unwrap();
-        assert!((coordinate.lat() - 35.0).abs() < 1e-8);
-        assert!((coordinate.lon() - 135.0).abs() < 1e-8);
+        assert!(eq_f64(coordinate.lat(), 35.0));
+        assert!(eq_f64(coordinate.lon(), 135.0));
     }
 
     #[test]
@@ -427,7 +459,7 @@ mod tests {
         let dms = DMS::new(35, 50, 35.49);
         assert_eq!(35, dms.degree());
         assert_eq!(50, dms.minute());
-        assert!((dms.second() - 35.49).abs() < 1e-8);
+        assert!(eq_f64(dms.second(), 35.49));
     }
 
     #[test]
@@ -435,13 +467,14 @@ mod tests {
         let dms = DMS::new(-35, 50, 35.49);
         assert_eq!(-35, dms.degree());
         assert_eq!(50, dms.minute());
-        assert!((dms.second() - 35.49).abs() < 1e-8);
+        assert!(eq_f64(dms.second(), 35.49));
     }
 
     #[test]
     fn dms_to_lat_ok() {
         let dms = DMS::new(35, 50, 35.49);
-        assert!(((35.0 + 50.0 / 60.0 + 35.49 / 3600.0) - dms.to_lat().unwrap()).abs() < 1e-8);
+        let expected = 35.0 + 50.0 / 60.0 + 35.49 / 3600.0;
+        assert!(eq_f64(expected, dms.to_lat().unwrap()));
     }
 
     #[test]
@@ -460,7 +493,8 @@ mod tests {
     #[test]
     fn dms_to_lon_ok() {
         let dms = DMS::new(135, 50, 35.49);
-        assert!(((135.0 + 50.0 / 60.0 + 35.49 / 3600.0) - dms.to_lon().unwrap()).abs() < 1e-8);
+        let expected = 135.0 + 50.0 / 60.0 + 35.49 / 3600.0;
+        assert!(eq_f64(expected, dms.to_lon().unwrap()));
     }
 
     #[test]
