@@ -197,3 +197,31 @@ pub enum NeighborDirection {
     /// 西側に隣り合っている
     West,
 }
+
+/// 座標
+pub struct Coordinate {
+    /// 緯度（度単位）
+    lat: f64,
+    /// 経度（度単位）
+    lon: f64,
+}
+
+impl Coordinate {
+    /// 座標の緯度を度単位で返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 座標の緯度
+    pub fn lat(self) -> f64 {
+        self.lat
+    }
+
+    /// 座標の経度を度単位で返す。
+    ///
+    /// # 戻り値
+    ///
+    /// 座標の経度
+    pub fn lon(self) -> f64 {
+        self.lon
+    }
+}
