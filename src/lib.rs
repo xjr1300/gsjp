@@ -265,7 +265,7 @@ pub enum GSJPError {
 ///
 /// 緯度（度単位）
 pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
-    if lat < SOUTHERNMOST_LAT || lat > NORTHERNMOST_LAT {
+    if !(SOUTHERNMOST_LAT..=NORTHERNMOST_LAT).contains(&lat) {
         return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
     }
 
@@ -282,7 +282,7 @@ pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
 ///
 /// 経度（度単位）
 pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
-    if lon < WESTERNMOST_LON || lon > EASTERNMOST_LON {
+    if !(WESTERNMOST_LON..=EASTERNMOST_LON).contains(&lon) {
         return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
     }
 
@@ -292,7 +292,7 @@ pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
 /// 度分秒
 pub struct DMS {
     /// 度
-    degree: u16,
+    degree: i16,
     /// 分
     minute: u8,
     /// 秒
@@ -311,7 +311,7 @@ impl DMS {
     /// # 戻り値
     ///
     /// 度分秒
-    pub fn new(degree: u16, minute: u8, second: f64) -> Self {
+    pub fn new(degree: i16, minute: u8, second: f64) -> Self {
         Self {
             degree,
             minute,
@@ -324,7 +324,7 @@ impl DMS {
     /// # 戻り値
     ///
     /// 度
-    pub fn degree(self) -> u16 {
+    pub fn degree(&self) -> i16 {
         self.degree
     }
 
@@ -333,7 +333,7 @@ impl DMS {
     /// # 戻り値
     ///
     /// 分
-    pub fn minute(self) -> u8 {
+    pub fn minute(&self) -> u8 {
         self.minute
     }
 
@@ -342,7 +342,7 @@ impl DMS {
     /// # 戻り値
     ///
     /// 秒
-    pub fn second(self) -> f64 {
+    pub fn second(&self) -> f64 {
         self.second
     }
 
@@ -351,10 +351,11 @@ impl DMS {
     /// # 戻り値
     ///
     /// 緯度
-    pub fn to_lat(self) -> Result<f64, GSJPError> {
-        let lat = self.degree as f64 + self.minute as f64 / 60.0 + self.second / 3600.0;
+    pub fn to_lat(&self) -> Result<f64, GSJPError> {
+        let sign = if self.degree >= 0 { 1.0 } else { -1.0 };
+        let lat = self.degree as f64 * sign + self.minute as f64 / 60.0 + self.second / 3600.0;
 
-        validate_lat(lat)
+        validate_lat(lat * sign)
     }
 
     /// 経度に変換する。
@@ -362,9 +363,116 @@ impl DMS {
     /// # 戻り値
     ///
     /// 経度
-    pub fn to_lon(self) -> Result<f64, GSJPError> {
-        let lon = self.degree as f64 + self.minute as f64 / 60.0 + self.second / 3600.0;
+    pub fn to_lon(&self) -> Result<f64, GSJPError> {
+        let sign = if self.degree >= 0 { 1.0 } else { -1.0 };
+        let lon = self.degree as f64 * sign + self.minute as f64 / 60.0 + self.second / 3600.0;
 
-        validate_lon(lon)
+        validate_lon(lon * sign)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_lat() {
+        assert!(validate_lat(SOUTHERNMOST_LAT).is_ok());
+        assert!(validate_lat(NORTHERNMOST_LAT).is_ok());
+    }
+
+    #[test]
+    fn validate_lat_err() {
+        assert!(validate_lat(SOUTHERNMOST_LAT - 1e-8).is_err());
+        assert!(validate_lat(NORTHERNMOST_LAT + 1e-8).is_err());
+    }
+
+    #[test]
+    fn validate_lon_ok() {
+        assert!(validate_lon(WESTERNMOST_LON).is_ok());
+        assert!(validate_lon(EASTERNMOST_LON).is_ok());
+    }
+
+    #[test]
+    fn validate_lon_err() {
+        assert!(validate_lon(WESTERNMOST_LON - 1e-8).is_err());
+        assert!(validate_lon(EASTERNMOST_LON + 1e-8).is_err());
+    }
+
+    #[test]
+    fn coordinate_new_ok() {
+        assert!(Coordinate::new(NORTHERNMOST_LAT, WESTERNMOST_LON).is_ok());
+        assert!(Coordinate::new(NORTHERNMOST_LAT, EASTERNMOST_LON).is_ok());
+        assert!(Coordinate::new(SOUTHERNMOST_LAT, WESTERNMOST_LON).is_ok());
+        assert!(Coordinate::new(SOUTHERNMOST_LAT, EASTERNMOST_LON).is_ok());
+    }
+
+    #[test]
+    fn coordinate_new_err() {
+        assert!(Coordinate::new(NORTHERNMOST_LAT + 1e-8, WESTERNMOST_LON).is_err());
+        assert!(Coordinate::new(NORTHERNMOST_LAT, WESTERNMOST_LON - 1e-8).is_err());
+        assert!(Coordinate::new(SOUTHERNMOST_LAT - 1e-8, WESTERNMOST_LON).is_err());
+        assert!(Coordinate::new(SOUTHERNMOST_LAT, EASTERNMOST_LON + 1e-8).is_err());
+    }
+
+    #[test]
+    fn coordinate_lat_lon_ok() {
+        let coordinate = Coordinate::new(35.0, 135.0).unwrap();
+        assert!((coordinate.lat() - 35.0).abs() < 1e-8);
+        assert!((coordinate.lon() - 135.0).abs() < 1e-8);
+    }
+
+    #[test]
+    fn dms_ok() {
+        let dms = DMS::new(35, 50, 35.49);
+        assert_eq!(35, dms.degree());
+        assert_eq!(50, dms.minute());
+        assert!((dms.second() - 35.49).abs() < 1e-8);
+    }
+
+    #[test]
+    fn dms_minus_ok() {
+        let dms = DMS::new(-35, 50, 35.49);
+        assert_eq!(-35, dms.degree());
+        assert_eq!(50, dms.minute());
+        assert!((dms.second() - 35.49).abs() < 1e-8);
+    }
+
+    #[test]
+    fn dms_to_lat_ok() {
+        let dms = DMS::new(35, 50, 35.49);
+        assert!(((35.0 + 50.0 / 60.0 + 35.49 / 3600.0) - dms.to_lat().unwrap()).abs() < 1e-8);
+    }
+
+    #[test]
+    fn dms_to_lat_err() {
+        let dms = DMS::new(-35, 50, 35.49);
+        // let expected = (35.0 + 50.0 / 60.0 + 35.49 / 3600.0) * -1.0;
+        // assert!(
+        //     (expected - dms.to_lat().unwrap()).abs() < 1e-8,
+        //     "expected: {}, actual: {}",
+        //     expected,
+        //     dms.to_lat().unwrap()
+        // );
+        assert!(dms.to_lat().is_err());
+    }
+
+    #[test]
+    fn dms_to_lon_ok() {
+        let dms = DMS::new(135, 50, 35.49);
+        assert!(((135.0 + 50.0 / 60.0 + 35.49 / 3600.0) - dms.to_lon().unwrap()).abs() < 1e-8);
+    }
+
+    #[test]
+    fn dms_to_lon_err() {
+        let dms = DMS::new(-135, 50, 35.49);
+        // let expected = (135.0 + 50.0 / 60.0 + 35.49 / 3600.0) * -1.0;
+        // assert!(
+        //     (expected - dms.to_lon().unwrap()).abs() < 1e-8,
+        //     "expected: {}, actual: {}",
+        //     expected,
+        //     dms.to_lon().unwrap()
+        // );
+        assert!(dms.to_lon().is_err());
     }
 }
