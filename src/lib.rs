@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
 /// | --- | --- | --- | --- |
@@ -47,51 +49,52 @@ pub trait Mesh: Sized {
     /// メッシュの西端の経度
     fn west(&self) -> f64;
 
-    /// メッシュの中心のを度単位で返す。
+    /// メッシュの中心の座標を返す。
     ///
     /// # 戻り値
     ///
-    /// メッシュの中心の緯度と経度格納したタプル
-    fn center(&self) -> (f64, f64) {
+    /// メッシュの中心の座標
+    fn center(&self) -> Coordinate {
         let lat = (self.north() + self.south()) / 2.0;
         let lon = (self.east() + self.west()) / 2.0;
-        (lat, lon)
+
+        Coordinate::new(lat, lon).unwrap()
     }
 
-    /// メッシュの北東端の座標を度単位で返す。
+    /// メッシュの北東端の座標を返す。
     ///
     /// # 戻り値
     ///
-    /// メッシュの北東端の緯度と経度格納したタプル
-    fn north_east(&self) -> (f64, f64) {
-        (self.north(), self.east())
+    /// メッシュの北東端の座標
+    fn north_east(&self) -> Coordinate {
+        Coordinate::new(self.north(), self.east()).unwrap()
     }
 
-    /// メッシュの南東端の座標を度単位で返す。
+    /// メッシュの南東端の座標を返す。
     ///
     /// # 戻り値
     ///
-    /// メッシュの南東端の緯度と経度格納したタプル
-    fn south_east(&self) -> (f64, f64) {
-        (self.south(), self.east())
+    /// メッシュの南東端の座標
+    fn south_east(&self) -> Coordinate {
+        Coordinate::new(self.south(), self.east()).unwrap()
     }
 
-    /// メッシュの南西端の座標を度単位で返す。
+    /// メッシュの南西端の座標を返す。
     ///
     /// # 戻り値
     ///
-    /// メッシュの南西端の緯度と経度格納したタプル
-    fn south_west(&self) -> (f64, f64) {
-        (self.south(), self.west())
+    /// メッシュの南西端の座標
+    fn south_west(&self) -> Coordinate {
+        Coordinate::new(self.south(), self.west()).unwrap()
     }
 
-    /// メッシュの北西端の座標を度単位で返す。
+    /// メッシュの北西端の座標を返す。
     ///
     /// # 戻り値
     ///
-    /// メッシュの北西端の緯度と経度格納したタプル
-    fn north_west(&self) -> (f64, f64) {
-        (self.north(), self.west())
+    /// メッシュの北西端の座標
+    fn north_west(&self) -> Coordinate {
+        Coordinate::new(self.north(), self.west()).unwrap()
     }
 
     /// 北隣のメッシュを返す。
@@ -158,18 +161,18 @@ pub trait Mesh: Sized {
         self.north_mesh().west_mesh()
     }
 
-    /// メッシュが隣接しているか確認する。
+    /// メッシュが隣り合っているか確認する。
     ///
-    /// 北東、南東、南西及び北西隣のメッシュは隣接していないと判定する。
+    /// 北東、南東、南西及び北西隣のメッシュは隣り合っていないと判定する。
     ///
     /// # 引数
     ///
-    /// * `mesh` - 隣接しているか確認するメッシュ。
+    /// * `mesh` - 隣り合っているか確認するメッシュ。
     ///
     /// # 戻り値
     ///
-    /// 隣接しているかを示す`NeighborDirection`列挙型。
-    fn is_joining(&self, mesh: &Self) -> NeighborDirection {
+    /// メッシュが隣り合っているかを示す`NeighborDirection`列挙型。
+    fn is_neighboring(&self, mesh: &Self) -> NeighborDirection {
         if self.north_mesh().code() == mesh.code() {
             return NeighborDirection::North;
         } else if self.east_mesh().code() == mesh.code() {
@@ -199,6 +202,7 @@ pub enum NeighborDirection {
 }
 
 /// 座標
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Coordinate {
     /// 緯度（度単位）
     lat: f64,
@@ -207,6 +211,23 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
+    /// 緯度と経度から座標を作成する。
+    ///
+    /// # 引数
+    ///
+    /// * `lat` - 緯度（度単位）
+    /// * `lon` - 経度（度単位）
+    ///
+    /// # 戻り値
+    ///
+    /// 座標
+    pub fn new(lat: f64, lon: f64) -> Result<Self, GSJPError> {
+        let lat = validate_lat(lat)?;
+        let lon = validate_lon(lon)?;
+
+        Ok(Self { lat, lon })
+    }
+
     /// 座標の緯度を度単位で返す。
     ///
     /// # 戻り値
@@ -224,4 +245,46 @@ impl Coordinate {
     pub fn lon(self) -> f64 {
         self.lon
     }
+}
+
+/// GSJPエラー
+#[derive(thiserror::Error, Debug)]
+pub enum GSJPError {
+    /// 座標が範囲外
+    #[error("{0}")]
+    OutOfRange(Cow<'static, str>),
+}
+
+/// 緯度を検証する。
+///
+/// # 引数
+///
+/// * `lat` - 緯度（度単位）
+///
+/// # 戻り値
+///
+/// 緯度（度単位）
+pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
+    if lat < SOUTHERNMOST_LAT || lat > NORTHERNMOST_LAT {
+        return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
+    }
+
+    Ok(lat)
+}
+
+/// 経度を検証する。
+///
+/// # 引数
+///
+/// * `lon` - 経度（度単位）
+///
+/// # 戻り値
+///
+/// 経度（度単位）
+pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
+    if lon < WESTERNMOST_LON || lon > EASTERNMOST_LON {
+        return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
+    }
+
+    Ok(lon)
 }
