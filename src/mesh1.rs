@@ -1,4 +1,7 @@
-use crate::{GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
+use crate::{
+    contains_coordinate, Coordinate, GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST,
+    WESTERNMOST,
+};
 
 /// 第1次地域区画の南端と北端の緯度の差
 const MESH1_LAT_DIFF: f64 = 40.0 / 60.0; // 40分
@@ -32,12 +35,14 @@ impl Mesh for Mesh1 {
         Ok(Mesh1 { code })
     }
 
-    fn from_coordinate(coord: crate::Coordinate) -> Self {
+    fn from_coordinate(coord: Coordinate) -> Result<Self, GSJPError> {
+        contains_coordinate(&coord)?;
+
         let lat = (coord.lat() * 1.5) as u8;
         let lon = (coord.lon() - 100.0) as u8;
         let code = format!("{:02}{:02}", lat, lon);
 
-        Mesh1 { code }
+        Ok(Mesh1 { code })
     }
 
     fn code(&self) -> &str {
@@ -101,7 +106,7 @@ impl Mesh for Mesh1 {
 /// # 戻り値
 ///
 /// `()`
-fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
+pub(crate) fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
     // メッシュコードを緯度部分と経度部分に分割
     if code.len() != 4 {
         return Err(GSJPError::InvalidMeshCode);
@@ -182,7 +187,7 @@ mod tests {
             (se, format!("{:02}{:02}", s, e)),
         ];
         for (coord, code) in data {
-            let mesh = Mesh1::from_coordinate(coord.to_owned());
+            let mesh = Mesh1::from_coordinate(coord.to_owned()).unwrap();
             assert_eq!(
                 code,
                 mesh.code(),
