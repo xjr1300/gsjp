@@ -1,4 +1,7 @@
-use crate::{GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
+use crate::{
+    contains_coordinate, Coordinate, GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST,
+    WESTERNMOST,
+};
 
 /// 第1次地域区画の南端と北端の緯度の差
 const MESH1_LAT_DIFF: f64 = 40.0 / 60.0; // 40分
@@ -32,12 +35,14 @@ impl Mesh for Mesh1 {
         Ok(Mesh1 { code })
     }
 
-    fn from_coordinate(coord: crate::Coordinate) -> Self {
+    fn from_coordinate(coord: Coordinate) -> Result<Self, GSJPError> {
+        contains_coordinate(&coord)?;
+
         let lat = (coord.lat() * 1.5) as u8;
         let lon = (coord.lon() - 100.0) as u8;
         let code = format!("{:02}{:02}", lat, lon);
 
-        Mesh1 { code }
+        Ok(Mesh1 { code })
     }
 
     fn code(&self) -> &str {
@@ -101,7 +106,7 @@ impl Mesh for Mesh1 {
 /// # 戻り値
 ///
 /// `()`
-fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
+pub(crate) fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
     // メッシュコードを緯度部分と経度部分に分割
     if code.len() != 4 {
         return Err(GSJPError::InvalidMeshCode);
@@ -182,7 +187,7 @@ mod tests {
             (se, format!("{:02}{:02}", s, e)),
         ];
         for (coord, code) in data {
-            let mesh = Mesh1::from_coordinate(coord.to_owned());
+            let mesh = Mesh1::from_coordinate(coord.to_owned()).unwrap();
             assert_eq!(
                 code,
                 mesh.code(),
@@ -190,6 +195,19 @@ mod tests {
                 code,
                 mesh.code()
             );
+        }
+    }
+
+    #[test]
+    fn mesh1_from_coordinate_err() {
+        let data = vec![
+            Coordinate::new(NORTHERNMOST + 1.0, WESTERNMOST).unwrap(),
+            Coordinate::new(NORTHERNMOST, WESTERNMOST - 1.0).unwrap(),
+            Coordinate::new(SOUTHERNMOST - 1.0, WESTERNMOST).unwrap(),
+            Coordinate::new(SOUTHERNMOST, EASTERNMOST + 1.0).unwrap(),
+        ];
+        for coord in data {
+            assert!(Mesh1::from_coordinate(coord).is_err());
         }
     }
 
@@ -218,11 +236,11 @@ mod tests {
     }
 
     #[test]
-    fn mesh1_east_ok() {
+    fn mesh1_west_ok() {
         let mesh = Mesh1::new(String::from("3022")).unwrap();
-        let expected = 122.0 + MESH1_LON_DIFF;
+        let expected = 122.0;
         assert!(
-            eq_f64(expected, mesh.east()),
+            eq_f64(expected, mesh.west()),
             "expected: {}, actual: {}",
             expected,
             mesh.north()
@@ -230,11 +248,11 @@ mod tests {
     }
 
     #[test]
-    fn mesh1_west_ok() {
+    fn mesh1_east_ok() {
         let mesh = Mesh1::new(String::from("3022")).unwrap();
-        let expected = 122.0;
+        let expected = 122.0 + MESH1_LON_DIFF;
         assert!(
-            eq_f64(expected, mesh.west()),
+            eq_f64(expected, mesh.east()),
             "expected: {}, actual: {}",
             expected,
             mesh.north()
@@ -400,10 +418,28 @@ mod tests {
     }
 
     #[test]
+    fn mesh1_north_east_mesh_err() {
+        let codes = vec!["6853", "6754", "6854"];
+        for code in codes {
+            let mesh = Mesh1::new(String::from(code)).unwrap();
+            assert!(mesh.north_east_mesh().is_err());
+        }
+    }
+
+    #[test]
     fn mesh1_south_east_mesh_ok() {
         let mesh = Mesh1::new(String::from("3122")).unwrap();
         let se_mesh = mesh.south_east_mesh().unwrap();
         assert_eq!("3023", se_mesh.code());
+    }
+
+    #[test]
+    fn mesh1_south_east_mesh_err() {
+        let codes = vec!["3053", "3154", "3054"];
+        for code in codes {
+            let mesh = Mesh1::new(String::from(code)).unwrap();
+            assert!(mesh.south_east_mesh().is_err());
+        }
     }
 
     #[test]
@@ -414,10 +450,28 @@ mod tests {
     }
 
     #[test]
+    fn mesh1_south_west_mesh_err() {
+        let codes = vec!["3023", "3122", "3022"];
+        for code in codes {
+            let mesh = Mesh1::new(String::from(code)).unwrap();
+            assert!(mesh.south_west_mesh().is_err());
+        }
+    }
+
+    #[test]
     fn mesh1_north_west_mesh_ok() {
         let mesh = Mesh1::new(String::from("3023")).unwrap();
         let nw_mesh = mesh.north_west_mesh().unwrap();
         assert_eq!("3122", nw_mesh.code());
+    }
+
+    #[test]
+    fn mesh1_north_west_mesh_err() {
+        let codes = vec!["6823", "6722", "6822"];
+        for code in codes {
+            let mesh = Mesh1::new(String::from(code)).unwrap();
+            assert!(mesh.north_west_mesh().is_err());
+        }
     }
 
     #[test]

@@ -2,6 +2,8 @@ use std::borrow::Cow;
 
 mod mesh1;
 pub use mesh1::Mesh1;
+mod mesh2;
+pub use mesh2::Mesh2;
 
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
@@ -42,7 +44,7 @@ pub trait Mesh: Sized {
     /// # 戻り値
     ///
     /// メッシュ
-    fn from_coordinate(coord: Coordinate) -> Self;
+    fn from_coordinate(coord: Coordinate) -> Result<Self, GSJPError>;
 
     /// メッシュコードを返す。
     ///
@@ -298,7 +300,7 @@ pub enum GSJPError {
 /// # 戻り値
 ///
 /// 緯度（度単位）
-pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
+fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
     if !(-90.0..=90.0).contains(&lat) {
         return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
     }
@@ -315,12 +317,32 @@ pub fn validate_lat(lat: f64) -> Result<f64, GSJPError> {
 /// # 戻り値
 ///
 /// 経度（度単位）
-pub fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
+fn validate_lon(lon: f64) -> Result<f64, GSJPError> {
     if !(-180.0..=180.0).contains(&lon) {
         return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
     }
 
     Ok(lon)
+}
+
+/// 標準地域メッシュが表現する範囲内に座標が含まれるか確認する。
+///
+/// # 引数
+///
+/// * `coord` - 座標
+///
+/// # 戻り値
+///
+/// `()`
+pub(crate) fn contains_coordinate(coord: &Coordinate) -> Result<(), GSJPError> {
+    if coord.lat() < SOUTHERNMOST || coord.lat() >= NORTHERNMOST + 1.0 {
+        return Err(GSJPError::OutOfRange("緯度が範囲外です。".into()));
+    }
+    if coord.lon() < WESTERNMOST || coord.lon() >= EASTERNMOST + 1.0 {
+        return Err(GSJPError::OutOfRange("経度が範囲外です。".into()));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -376,5 +398,34 @@ pub mod tests {
         let coordinate = Coordinate::new(35.0, 135.0).unwrap();
         assert!(eq_f64(coordinate.lat(), 35.0));
         assert!(eq_f64(coordinate.lon(), 135.0));
+    }
+
+    #[test]
+    fn contains_coordinate_ok() {
+        assert!(contains_coordinate(&Coordinate::new(SOUTHERNMOST, WESTERNMOST).unwrap()).is_ok());
+        assert!(contains_coordinate(
+            &Coordinate::new(NORTHERNMOST + 1.0 - 1e-8, EASTERNMOST + 1.0 - 1e-8).unwrap()
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn contains_coordinate_err() {
+        assert!(
+            contains_coordinate(&Coordinate::new(SOUTHERNMOST - 1e-8, WESTERNMOST).unwrap())
+                .is_err()
+        );
+        assert!(
+            contains_coordinate(&Coordinate::new(SOUTHERNMOST, WESTERNMOST - 1e-8).unwrap())
+                .is_err()
+        );
+        assert!(contains_coordinate(
+            &Coordinate::new(NORTHERNMOST + 1.0, EASTERNMOST + 1.0 - 1e-8).unwrap()
+        )
+        .is_err());
+        assert!(contains_coordinate(
+            &Coordinate::new(NORTHERNMOST + 1.0 - 1e-8, EASTERNMOST + 1.0).unwrap()
+        )
+        .is_err());
     }
 }
