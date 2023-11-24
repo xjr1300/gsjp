@@ -5,9 +5,10 @@ const MESH2_LAT_DIFF: f64 = 5.0 / 60.0; // 5分
 /// 第2次地域区画の西端と東端の緯度の差
 const MESH2_LON_DIFF: f64 = 7.0 / 60.0 + 30.0 / 3600.0; // 7分30秒
 
-/// 第2次地域区画
+/// 第2次地域区画（統合地域メッシュ）
 ///
-/// 第1次地域区画を南北に8等分、東西に8等分した区画である。
+/// 第1次地域区画を南北に8等分、東西に8等分した区画を示す。
+/// 第2次地域区画の辺の長さは約10kmである。
 pub struct Mesh2 {
     code: String,
 }
@@ -84,12 +85,7 @@ impl Mesh for Mesh2 {
             let mesh1 = self.mesh1().east_mesh()?;
             format!("{}{}0", mesh1.code(), self.code.chars().nth(4).unwrap())
         } else {
-            format!(
-                "{}{}{}",
-                &self.code[0..4],
-                self.code.chars().nth(4).unwrap(),
-                lon_idx + 1,
-            )
+            format!("{}{}", &self.code[0..5], lon_idx + 1,)
         };
 
         Self::new(code)
@@ -118,12 +114,7 @@ impl Mesh for Mesh2 {
             let mesh1 = self.mesh1().west_mesh()?;
             format!("{}{}7", mesh1.code(), self.code.chars().nth(4).unwrap())
         } else {
-            format!(
-                "{}{}{}",
-                &self.code[0..4],
-                self.code.chars().nth(4).unwrap(),
-                lon_idx - 1,
-            )
+            format!("{}{}", &self.code[0..5], lon_idx - 1,)
         };
 
         Self::new(code)
@@ -145,7 +136,7 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
         return Err(GSJPError::InvalidMeshCode);
     }
     validate_mesh1_code(&code[0..4])?;
-    // 第２時地域区画部分のメッシュコードの緯度方向の値と経度方向の値を確認
+    // 第2次地域区画のメッシュコードの第2次地域区画部分について、緯度方向の値と経度方向の値を確認
     let lat = &code.chars().nth(4).unwrap();
     if lat < &'0' || lat > &'7' {
         return Err(GSJPError::InvalidMeshCode);
