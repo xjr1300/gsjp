@@ -349,7 +349,7 @@ pub(crate) fn contains_coordinate(coord: &Coordinate) -> Result<(), GSJPError> {
 }
 
 #[cfg(test)]
-pub mod tests {
+pub(crate) mod tests {
     use super::*;
 
     pub fn eq_f64(expected: f64, actual: f64) -> bool {
