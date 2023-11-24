@@ -158,19 +158,22 @@ mod tests {
 
     #[test]
     fn mesh2_new_ok() {
-        let codes = vec!["513500", "513570", "513507", "513577"];
-        for code in codes {
-            let mesh = Mesh2::new(code.into()).unwrap();
-            assert_eq!(mesh.code(), code);
-        }
+        assert!(Mesh2::new(String::from("685477")).is_ok());
+        assert!(Mesh2::new(String::from("305407")).is_ok());
+        assert!(Mesh2::new(String::from("302200")).is_ok());
+        assert!(Mesh2::new(String::from("682270")).is_ok());
     }
 
     #[test]
     fn mesh2_new_err() {
-        let codes = vec!["513580", "513508", "292270", "302107", "695400", "685500"];
-        for code in codes {
-            assert!(Mesh2::new(code.into()).is_err(), "{}", code);
-        }
+        assert!(Mesh2::new(String::from("695407")).is_err());
+        assert!(Mesh2::new(String::from("685570")).is_err());
+        assert!(Mesh2::new(String::from("295477")).is_err());
+        assert!(Mesh2::new(String::from("305500")).is_err());
+        assert!(Mesh2::new(String::from("292270")).is_err());
+        assert!(Mesh2::new(String::from("302107")).is_err());
+        assert!(Mesh2::new(String::from("692200")).is_err());
+        assert!(Mesh2::new(String::from("682107")).is_err());
     }
 
     #[test]

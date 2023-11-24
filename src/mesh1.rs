@@ -143,31 +143,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn validate_mesh1_code_ok() {
-        assert!(validate_mesh1_code("3022").is_ok());
-        assert!(validate_mesh1_code("6854").is_ok());
-    }
-
-    #[test]
-    fn validate_mesh1_code_err() {
-        assert!(validate_mesh1_code("2922").is_err());
-        assert!(validate_mesh1_code("3021").is_err());
-        assert!(validate_mesh1_code("6954").is_err());
-        assert!(validate_mesh1_code("6855").is_err());
-    }
-
-    #[test]
     fn mesh1_new_ok() {
-        assert!(Mesh1::new(String::from("3022")).is_ok());
         assert!(Mesh1::new(String::from("6854")).is_ok());
+        assert!(Mesh1::new(String::from("3054")).is_ok());
+        assert!(Mesh1::new(String::from("3022")).is_ok());
+        assert!(Mesh1::new(String::from("6822")).is_ok());
     }
 
     #[test]
     fn mesh1_new_err() {
-        assert!(Mesh1::new(String::from("2922")).is_err());
-        assert!(Mesh1::new(String::from("3021")).is_err());
         assert!(Mesh1::new(String::from("6954")).is_err());
         assert!(Mesh1::new(String::from("6855")).is_err());
+        assert!(Mesh1::new(String::from("2954")).is_err());
+        assert!(Mesh1::new(String::from("3055")).is_err());
+        assert!(Mesh1::new(String::from("2922")).is_err());
+        assert!(Mesh1::new(String::from("3021")).is_err());
+        assert!(Mesh1::new(String::from("6922")).is_err());
+        assert!(Mesh1::new(String::from("6821")).is_err());
     }
 
     #[test]
