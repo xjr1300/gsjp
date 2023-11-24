@@ -138,11 +138,11 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
     validate_mesh1_code(&code[0..4])?;
     // 第2次地域区画のメッシュコードの第2次地域区画部分について、緯度方向の値と経度方向の値を確認
     let lat = &code.chars().nth(4).unwrap();
-    if lat < &'0' || lat > &'7' {
+    if !(&'0'..=&'7').contains(&lat) {
         return Err(GSJPError::InvalidMeshCode);
     }
     let lon = &code.chars().nth(5).unwrap();
-    if lon < &'0' || lon > &'7' {
+    if !(&'0'..=&'7').contains(&lon) {
         return Err(GSJPError::InvalidMeshCode);
     }
 
