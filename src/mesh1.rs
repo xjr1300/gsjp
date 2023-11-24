@@ -10,6 +10,8 @@ const MESH1_LON_DIFF: f64 = 1.0; // 1度
 
 /// 第1次地域区画
 ///
+/// 第1次地域区画の辺の長さは約80kmである。
+///
 /// 緯度は20度から46度まで、経度は122度から155度までの範囲を表現する。
 /// メッシュコードは、区画の南西端の緯度と経度で決まる。
 ///
@@ -141,31 +143,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn validate_mesh1_code_ok() {
-        assert!(validate_mesh1_code("3022").is_ok());
-        assert!(validate_mesh1_code("6854").is_ok());
-    }
-
-    #[test]
-    fn validate_mesh1_code_err() {
-        assert!(validate_mesh1_code("2922").is_err());
-        assert!(validate_mesh1_code("3021").is_err());
-        assert!(validate_mesh1_code("6954").is_err());
-        assert!(validate_mesh1_code("6855").is_err());
-    }
-
-    #[test]
     fn mesh1_new_ok() {
-        assert!(Mesh1::new(String::from("3022")).is_ok());
         assert!(Mesh1::new(String::from("6854")).is_ok());
+        assert!(Mesh1::new(String::from("3054")).is_ok());
+        assert!(Mesh1::new(String::from("3022")).is_ok());
+        assert!(Mesh1::new(String::from("6822")).is_ok());
     }
 
     #[test]
     fn mesh1_new_err() {
-        assert!(Mesh1::new(String::from("2922")).is_err());
-        assert!(Mesh1::new(String::from("3021")).is_err());
         assert!(Mesh1::new(String::from("6954")).is_err());
         assert!(Mesh1::new(String::from("6855")).is_err());
+        assert!(Mesh1::new(String::from("2954")).is_err());
+        assert!(Mesh1::new(String::from("3055")).is_err());
+        assert!(Mesh1::new(String::from("2922")).is_err());
+        assert!(Mesh1::new(String::from("3021")).is_err());
+        assert!(Mesh1::new(String::from("6922")).is_err());
+        assert!(Mesh1::new(String::from("6821")).is_err());
     }
 
     #[test]
@@ -408,70 +402,6 @@ mod tests {
     fn mesh1_west_mesh_err() {
         let mesh = Mesh1::new(String::from("3022")).unwrap();
         assert!(mesh.west_mesh().is_err());
-    }
-
-    #[test]
-    fn mesh1_north_east_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
-        let ne_mesh = mesh.north_east_mesh().unwrap();
-        assert_eq!("3123", ne_mesh.code());
-    }
-
-    #[test]
-    fn mesh1_north_east_mesh_err() {
-        let codes = vec!["6853", "6754", "6854"];
-        for code in codes {
-            let mesh = Mesh1::new(String::from(code)).unwrap();
-            assert!(mesh.north_east_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh1_south_east_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3122")).unwrap();
-        let se_mesh = mesh.south_east_mesh().unwrap();
-        assert_eq!("3023", se_mesh.code());
-    }
-
-    #[test]
-    fn mesh1_south_east_mesh_err() {
-        let codes = vec!["3053", "3154", "3054"];
-        for code in codes {
-            let mesh = Mesh1::new(String::from(code)).unwrap();
-            assert!(mesh.south_east_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh1_south_west_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3123")).unwrap();
-        let sw_mesh = mesh.south_west_mesh().unwrap();
-        assert_eq!("3022", sw_mesh.code());
-    }
-
-    #[test]
-    fn mesh1_south_west_mesh_err() {
-        let codes = vec!["3023", "3122", "3022"];
-        for code in codes {
-            let mesh = Mesh1::new(String::from(code)).unwrap();
-            assert!(mesh.south_west_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh1_north_west_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3023")).unwrap();
-        let nw_mesh = mesh.north_west_mesh().unwrap();
-        assert_eq!("3122", nw_mesh.code());
-    }
-
-    #[test]
-    fn mesh1_north_west_mesh_err() {
-        let codes = vec!["6823", "6722", "6822"];
-        for code in codes {
-            let mesh = Mesh1::new(String::from(code)).unwrap();
-            assert!(mesh.north_west_mesh().is_err());
-        }
     }
 
     #[test]

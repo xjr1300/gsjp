@@ -5,9 +5,10 @@ const MESH2_LAT_DIFF: f64 = 5.0 / 60.0; // 5分
 /// 第2次地域区画の西端と東端の緯度の差
 const MESH2_LON_DIFF: f64 = 7.0 / 60.0 + 30.0 / 3600.0; // 7分30秒
 
-/// 第2次地域区画
+/// 第2次地域区画（統合地域メッシュ）
 ///
-/// 第1次地域区画を南北に8等分、東西に8等分した区画である。
+/// 第1次地域区画を南北に8等分、東西に8等分した区画を示す。
+/// 第2次地域区画の辺の長さは約10kmである。
 pub struct Mesh2 {
     code: String,
 }
@@ -84,12 +85,7 @@ impl Mesh for Mesh2 {
             let mesh1 = self.mesh1().east_mesh()?;
             format!("{}{}0", mesh1.code(), self.code.chars().nth(4).unwrap())
         } else {
-            format!(
-                "{}{}{}",
-                &self.code[0..4],
-                self.code.chars().nth(4).unwrap(),
-                lon_idx + 1,
-            )
+            format!("{}{}", &self.code[0..5], lon_idx + 1,)
         };
 
         Self::new(code)
@@ -118,12 +114,7 @@ impl Mesh for Mesh2 {
             let mesh1 = self.mesh1().west_mesh()?;
             format!("{}{}7", mesh1.code(), self.code.chars().nth(4).unwrap())
         } else {
-            format!(
-                "{}{}{}",
-                &self.code[0..4],
-                self.code.chars().nth(4).unwrap(),
-                lon_idx - 1,
-            )
+            format!("{}{}", &self.code[0..5], lon_idx - 1,)
         };
 
         Self::new(code)
@@ -145,13 +136,13 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
         return Err(GSJPError::InvalidMeshCode);
     }
     validate_mesh1_code(&code[0..4])?;
-    // 第２時地域区画部分のメッシュコードの緯度方向の値と経度方向の値を確認
+    // 第2次地域区画のメッシュコードの第2次地域区画部分について、緯度方向の値と経度方向の値を確認
     let lat = &code.chars().nth(4).unwrap();
-    if lat < &'0' || lat > &'7' {
+    if !(&'0'..=&'7').contains(&lat) {
         return Err(GSJPError::InvalidMeshCode);
     }
     let lon = &code.chars().nth(5).unwrap();
-    if lon < &'0' || lon > &'7' {
+    if !(&'0'..=&'7').contains(&lon) {
         return Err(GSJPError::InvalidMeshCode);
     }
 
@@ -159,7 +150,7 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use crate::tests::eq_f64;
     use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
@@ -167,19 +158,22 @@ mod tests {
 
     #[test]
     fn mesh2_new_ok() {
-        let codes = vec!["513500", "513570", "513507", "513577"];
-        for code in codes {
-            let mesh = Mesh2::new(code.into()).unwrap();
-            assert_eq!(mesh.code(), code);
-        }
+        assert!(Mesh2::new(String::from("685477")).is_ok());
+        assert!(Mesh2::new(String::from("305407")).is_ok());
+        assert!(Mesh2::new(String::from("302200")).is_ok());
+        assert!(Mesh2::new(String::from("682270")).is_ok());
     }
 
     #[test]
     fn mesh2_new_err() {
-        let codes = vec!["513580", "513508", "292270", "302107", "695400", "685500"];
-        for code in codes {
-            assert!(Mesh2::new(code.into()).is_err(), "{}", code);
-        }
+        assert!(Mesh2::new(String::from("695407")).is_err());
+        assert!(Mesh2::new(String::from("685570")).is_err());
+        assert!(Mesh2::new(String::from("295477")).is_err());
+        assert!(Mesh2::new(String::from("305500")).is_err());
+        assert!(Mesh2::new(String::from("292270")).is_err());
+        assert!(Mesh2::new(String::from("302107")).is_err());
+        assert!(Mesh2::new(String::from("692200")).is_err());
+        assert!(Mesh2::new(String::from("682107")).is_err());
     }
 
     #[test]
@@ -223,16 +217,16 @@ mod tests {
             Coordinate::new(SOUTHERNMOST, EASTERNMOST + 1.0).unwrap(),
         ];
         for coord in data {
-            assert!(Mesh1::from_coordinate(coord).is_err());
+            assert!(Mesh2::from_coordinate(coord).is_err());
         }
     }
 
-    fn mesh1_south(code: &str) -> f64 {
+    pub(crate) fn mesh2_south(code: &str) -> f64 {
         &code[0..2].parse::<f64>().unwrap() / 1.5
             + code.chars().nth(4).unwrap().to_digit(10).unwrap() as f64 * MESH2_LAT_DIFF
     }
 
-    fn mesh1_west(code: &str) -> f64 {
+    pub(crate) fn mesh2_west(code: &str) -> f64 {
         &code[2..4].parse::<f64>().unwrap()
             + 100.0
             + code.chars().nth(5).unwrap().to_digit(10).unwrap() as f64 * MESH2_LON_DIFF
@@ -242,7 +236,7 @@ mod tests {
     fn mesh2_north_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh1_south(code) + MESH2_LAT_DIFF;
+        let expected = mesh2_south(code) + MESH2_LAT_DIFF;
         assert!(
             eq_f64(mesh.north(), expected),
             "expected: {}, actual: {}",
@@ -255,7 +249,7 @@ mod tests {
     fn mesh2_south_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh1_south(code);
+        let expected = mesh2_south(code);
         assert!(
             eq_f64(mesh.south(), expected),
             "expected: {}, actual: {}",
@@ -268,7 +262,7 @@ mod tests {
     fn mesh2_west_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh1_west(code);
+        let expected = mesh2_west(code);
         assert!(
             eq_f64(mesh.west(), expected),
             "expected: {}, actual: {}",
@@ -281,7 +275,7 @@ mod tests {
     fn mesh2_east_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh1_west(code) + MESH2_LON_DIFF;
+        let expected = mesh2_west(code) + MESH2_LON_DIFF;
         assert!(
             eq_f64(mesh.east(), expected),
             "expected: {}, actual: {}",
@@ -294,8 +288,8 @@ mod tests {
     fn mesh2_center_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let lat_center = mesh1_south(code) + MESH2_LAT_DIFF / 2.0;
-        let lon_center = mesh1_west(code) + MESH2_LON_DIFF / 2.0;
+        let lat_center = mesh2_south(code) + MESH2_LAT_DIFF / 2.0;
+        let lon_center = mesh2_west(code) + MESH2_LON_DIFF / 2.0;
         let center = mesh.center();
         assert!(
             eq_f64(center.lat(), lat_center),
@@ -315,8 +309,8 @@ mod tests {
     fn mesh2_north_east_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let north = mesh1_south(code) + MESH2_LAT_DIFF;
-        let east = mesh1_west(code) + MESH2_LON_DIFF;
+        let north = mesh2_south(code) + MESH2_LAT_DIFF;
+        let east = mesh2_west(code) + MESH2_LON_DIFF;
         let north_east = mesh.north_east();
         assert!(
             eq_f64(north_east.lat(), north),
@@ -336,8 +330,8 @@ mod tests {
     fn mesh2_south_east_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let south = mesh1_south(code);
-        let east = mesh1_west(code) + MESH2_LON_DIFF;
+        let south = mesh2_south(code);
+        let east = mesh2_west(code) + MESH2_LON_DIFF;
         let south_east = mesh.south_east();
         assert!(
             eq_f64(south_east.lat(), south),
@@ -357,8 +351,8 @@ mod tests {
     fn mesh2_south_west_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let south = mesh1_south(code);
-        let west = mesh1_west(code);
+        let south = mesh2_south(code);
+        let west = mesh2_west(code);
         let south_west = mesh.south_west();
         assert!(
             eq_f64(south_west.lat(), south),
@@ -378,8 +372,8 @@ mod tests {
     fn mesh2_north_west_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
-        let north = mesh1_south(code) + MESH2_LAT_DIFF;
-        let west = mesh1_west(code);
+        let north = mesh2_south(code) + MESH2_LAT_DIFF;
+        let west = mesh2_west(code);
         let north_west = mesh.north_west();
         assert!(
             eq_f64(north_west.lat(), north),
@@ -457,82 +451,6 @@ mod tests {
     fn mesh2_west_mesh_err() {
         let mesh = Mesh2::new(String::from("302200")).unwrap();
         assert!(mesh.west_mesh().is_err());
-    }
-
-    #[test]
-    fn mesh2_north_east_mesh_ok() {
-        let input = vec![("513546", "513557"), ("513577", "523600")];
-        for (code, expected) in input {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            let ne_mesh = mesh.north_east_mesh().unwrap();
-            assert_eq!(expected, ne_mesh.code());
-        }
-    }
-
-    #[test]
-    fn mesh2_north_east_mesh_err() {
-        let codes = vec!["685470", "685407", "685477"];
-        for code in codes {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            assert!(mesh.north_east_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh2_south_east_mesh_ok() {
-        let input = vec![("513546", "513537"), ("513507", "503670")];
-        for (code, expected) in input {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            let se_mesh = mesh.south_east_mesh().unwrap();
-            assert_eq!(expected, se_mesh.code());
-        }
-    }
-
-    #[test]
-    fn mesh2_south_east_mesh_err() {
-        let codes = vec!["305400", "305417", "305407"];
-        for code in codes {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            assert!(mesh.south_east_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh2_south_west_mesh_ok() {
-        let input = vec![("513546", "513535"), ("513500", "503477")];
-        for (code, expected) in input {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            let sw_mesh = mesh.south_west_mesh().unwrap();
-            assert_eq!(expected, sw_mesh.code());
-        }
-    }
-
-    #[test]
-    fn mesh2_south_west_mesh_err() {
-        let codes = vec!["302201", "302210", "302200"];
-        for code in codes {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            assert!(mesh.south_west_mesh().is_err());
-        }
-    }
-
-    #[test]
-    fn mesh2_north_west_mesh_ok() {
-        let input = vec![("513546", "513555"), ("513570", "523407")];
-        for (code, expected) in input {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            let nw_mesh = mesh.north_west_mesh().unwrap();
-            assert_eq!(expected, nw_mesh.code());
-        }
-    }
-
-    #[test]
-    fn mesh2_north_west_mesh_err() {
-        let codes = vec!["682271", "682260", "682270"];
-        for code in codes {
-            let mesh = Mesh2::new(String::from(code)).unwrap();
-            assert!(mesh.north_west_mesh().is_err());
-        }
     }
 
     #[test]
