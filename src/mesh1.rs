@@ -199,6 +199,19 @@ mod tests {
     }
 
     #[test]
+    fn mesh1_from_coordinate_err() {
+        let data = vec![
+            Coordinate::new(NORTHERNMOST + 1.0, WESTERNMOST).unwrap(),
+            Coordinate::new(NORTHERNMOST, WESTERNMOST - 1.0).unwrap(),
+            Coordinate::new(SOUTHERNMOST - 1.0, WESTERNMOST).unwrap(),
+            Coordinate::new(SOUTHERNMOST, EASTERNMOST + 1.0).unwrap(),
+        ];
+        for coord in data {
+            assert!(Mesh1::from_coordinate(coord).is_err());
+        }
+    }
+
+    #[test]
     fn mesh1_north_ok() {
         let mesh = Mesh1::new(String::from("3022")).unwrap();
         let expected = 30.0 / 1.5 + MESH1_LAT_DIFF;
