@@ -150,7 +150,7 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
 }
 
 #[cfg(test)]
-pub mod tests {
+pub(crate) mod tests {
     use crate::tests::eq_f64;
     use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
@@ -158,48 +158,113 @@ pub mod tests {
 
     #[test]
     fn mesh2_new_ok() {
-        assert!(Mesh2::new(String::from("685477")).is_ok());
-        assert!(Mesh2::new(String::from("305407")).is_ok());
-        assert!(Mesh2::new(String::from("302200")).is_ok());
-        assert!(Mesh2::new(String::from("682270")).is_ok());
+        // 東京付近の第1次地域区画の北東端の第2次地域区画
+        assert!(Mesh2::new(String::from("533977")).is_ok());
+        // 東京付近の第1次地域区画の南東端の第2次地域区画
+        assert!(Mesh2::new(String::from("533907")).is_ok());
+        // 東京付近の第1次地域区画の南西端の第2次地域区画
+        assert!(Mesh2::new(String::from("533900")).is_ok());
+        // 東京付近の第1次地域区画の北西端の第2次地域区画
+        assert!(Mesh2::new(String::from("533970")).is_ok());
     }
 
     #[test]
     fn mesh2_new_err() {
+        // 北東端の1つ北側の第2次地域区画
         assert!(Mesh2::new(String::from("695407")).is_err());
+        // 北東端の1つ東側の第2次地域区画
         assert!(Mesh2::new(String::from("685570")).is_err());
+        // 南東端の1つ南側の第2次地域区画
         assert!(Mesh2::new(String::from("295477")).is_err());
+        // 南東端の1つ東側の第2次地域区画
         assert!(Mesh2::new(String::from("305500")).is_err());
+        // 南西端の1つ南側の第2次地域区画
         assert!(Mesh2::new(String::from("292270")).is_err());
+        // 南西端の1つ西側の第2次地域区画
         assert!(Mesh2::new(String::from("302107")).is_err());
+        // 北西端の1つ北側の第2次地域区画
         assert!(Mesh2::new(String::from("692200")).is_err());
+        // 北西端の1つ西側の第2次地域区画
         assert!(Mesh2::new(String::from("682107")).is_err());
     }
 
     #[test]
+    #[rustfmt::skip]
     fn mesh2_from_coordinate_ok() {
         let inputs = vec![
-            (Coordinate::new(34.0, 135.0).unwrap(), "513500"),
-            (
-                Coordinate::new(34.0 + 40.0 / 60.0, 135.0).unwrap(),
-                "523500",
-            ),
-            (Coordinate::new(34.0, 136.0).unwrap(), "513600"),
-            (
-                Coordinate::new(34.0 + 24.0 / 60.0, 135.0 + 45.0 / 60.0).unwrap(),
-                "513546",
-            ),
-            (
-                Coordinate::new(34.0 + 20.0 / 60.0, 135.0 + 45.0 / 60.0).unwrap(),
-                "513546",
-            ),
+            // 東京付近の第1次地域区画の北東端の第2次地域区画の中心座標
             (
                 Coordinate::new(
-                    34.0 + 20.0 / 60.0 + MESH2_LAT_DIFF - 1e-8,
-                    135.0 + 45.0 / 60.0 + MESH2_LON_DIFF - 1e-8,
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 7.5,
+                    139.0 + MESH2_LON_DIFF * 7.5,
                 )
                 .unwrap(),
-                "513546",
+                "533977",
+            ),
+            // 東京付近の第1次地域区画の北東端の第2次地域区画
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0  - 1e-8,
+                    139.0 + MESH2_LON_DIFF * 8.0 - 1e-8,
+                )
+                .unwrap(),
+                "533977",
+            ),
+            // 東京付近の第1次地域区画の南東端の第2次地域区画の中心座標
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF / 2.0,
+                    139.0 + MESH2_LON_DIFF * 7.5
+                ).unwrap(),
+                "533907",
+            ),
+            // 東京付近の第1次地域区画の南東端の第2次地域区画
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + 1e-8,
+                    139.0 + MESH2_LON_DIFF * 8.0 - 1e-8,
+                ).unwrap(),
+                "533907",
+            ),
+            // 東京付近の第1次地域区画の南西端の第2次地域区画の中心座標
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF / 2.0,
+                    139.0 + MESH2_LON_DIFF / 2.0,
+                ).unwrap(),
+                "533900"
+            ),
+            // 東京付近の第1次地域区画の南西端の第2次地域区画
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + 1e-8,
+                    139.0 + 1e-8,
+                ).unwrap(),
+                "533900"
+            ),
+            // 東京付近の第1次地域区画の北西端の第2次地域区画の中心座標
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 7.5,
+                    139.0 + MESH2_LON_DIFF / 2.0,
+                ).unwrap(),
+                "533970",
+            ),
+            // 東京付近の第1次地域区画の北西端の第2次地域区画
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0 - 1e-8,
+                    139.0 + 1e-8,
+                ).unwrap(),
+                "533970",
+            ),
+            // 東京タワーを含む第2次地域区画
+            (
+                Coordinate::new(
+                    35.65858404079,
+                    139.74543164468,
+                ).unwrap(),
+                "533935",
             ),
         ];
         for (coord, code) in inputs {

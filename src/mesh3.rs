@@ -151,7 +151,7 @@ pub(crate) fn validate_mesh3_code(code: &str) -> Result<(), GSJPError> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use crate::{
         mesh2::tests::{mesh2_south, mesh2_west},
         tests::eq_f64,
@@ -182,54 +182,105 @@ mod tests {
 
     #[test]
     fn mesh3_from_coordinate_ok() {
-        let mesh2 = Mesh2::new(String::from("513546")).unwrap();
+        // 東京タワーを含む第2次地域区画
+        let mesh2 = Mesh2::new(String::from("533935")).unwrap();
         #[rustfmt::skip]
         let inputs = vec![
+            // 東京タワーを含むメッシュの北東端の中心座標
             (
                 Coordinate::new(
-                    34.0 + 21.0 / 60.0 + 30.0 / 3600.0 + 1e-8,
-                    135.0 + 50.0 / 60.0 + 15.0 / 3600.0 + 1e-8,
+                    mesh2.north() - MESH3_LAT_DIFF / 2.0,
+                    mesh2.east() - MESH3_LON_DIFF / 2.0,
                 )
                 .unwrap(),
-                "51354637",
+                "53393599",
+                "北東端の中心"
             ),
-            (   // 北東端
+            // 東京タワーを含むメッシュの北東端
+            (
                 Coordinate::new(
-                    mesh2.north() - MESH3_LAT_DIFF,
-                    mesh2.east() - MESH3_LON_DIFF,
+                    mesh2.north() - 1e-8,
+                    mesh2.east() - 1e-8,
                 ).unwrap(),
-                "51354699",
+                "53393599",
+                "北東端"
             ),
-            (   // 南東端
+            // 東京タワーを含むメッシュの南東端の中心座標
+            (
                 Coordinate::new(
-                    mesh2.south(),
-                    mesh2.east() - MESH3_LON_DIFF,
-                ).unwrap(),
-                "51354609",
+                    mesh2.south() + MESH3_LAT_DIFF / 2.0,
+                    mesh2.east() - MESH3_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "53393509",
+                "南東端の中心"
             ),
-            (   // 南西端
+            // 東京タワーを含むメッシュの南東端
+            (
                 Coordinate::new(
-                    mesh2.south(),
-                    mesh2.west(),
+                    mesh2.south() + 1e-8,
+                    mesh2.east() - 1e-8,
                 ).unwrap(),
-                "51354600",
+                "53393509",
+                "南東端"
             ),
-            (   // 北西端
+            // 東京タワーを含むメッシュの南西端の中心座標
+            (
                 Coordinate::new(
-                    mesh2.north() - MESH3_LAT_DIFF,
-                    mesh2.west(),
+                    mesh2.south() + MESH3_LAT_DIFF / 2.0,
+                    mesh2.west() + MESH3_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "53393500",
+                "南西端の中心"
+            ),
+            // 東京タワーを含むメッシュの南西端
+            (
+                Coordinate::new(
+                    mesh2.south() + 1e-8,
+                    mesh2.west() + 1e-8,
                 ).unwrap(),
-                "51354690",
+                "53393500",
+                "南西端"
+            ),
+            // 東京タワーを含むメッシュの北西端の中心座標
+            (
+                Coordinate::new(
+                    mesh2.north() - MESH3_LAT_DIFF / 2.0,
+                    mesh2.west() + MESH3_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "53393590",
+                "北西端の中心"
+            ),
+            // 東京タワーを含むメッシュの北西端
+            (
+                Coordinate::new(
+                    mesh2.north() - 1e-8,
+                    mesh2.west() + 1e-8,
+                ).unwrap(),
+                "53393590",
+                "北西端"
+            ),
+            // 東京タワーを含む第3次地域区画
+            (
+                Coordinate::new(
+                    35.65858404079,
+                    139.74543164468,
+                ).unwrap(),
+                "53393599",
+                "東京タワー"
             ),
         ];
-        for (coord, expected) in inputs {
+        for (coord, expected, name) in inputs {
             let mesh = Mesh3::from_coordinate(coord).unwrap();
             assert_eq!(
                 expected,
                 mesh.code(),
-                "expected: {}, actual: {}",
+                "expected: {}, actual: {}, name: {}",
                 expected,
-                mesh.code()
+                mesh.code(),
+                name
             );
         }
     }

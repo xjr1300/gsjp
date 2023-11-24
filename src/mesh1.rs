@@ -144,43 +144,74 @@ mod tests {
 
     #[test]
     fn mesh1_new_ok() {
-        assert!(Mesh1::new(String::from("6854")).is_ok());
-        assert!(Mesh1::new(String::from("3054")).is_ok());
-        assert!(Mesh1::new(String::from("3022")).is_ok());
-        assert!(Mesh1::new(String::from("6822")).is_ok());
+        assert!(Mesh1::new(String::from("6854")).is_ok()); // 北東端
+        assert!(Mesh1::new(String::from("3054")).is_ok()); // 南東端
+        assert!(Mesh1::new(String::from("3022")).is_ok()); // 南西端
+        assert!(Mesh1::new(String::from("6822")).is_ok()); // 北西端
     }
 
     #[test]
     fn mesh1_new_err() {
-        assert!(Mesh1::new(String::from("6954")).is_err());
-        assert!(Mesh1::new(String::from("6855")).is_err());
-        assert!(Mesh1::new(String::from("2954")).is_err());
-        assert!(Mesh1::new(String::from("3055")).is_err());
-        assert!(Mesh1::new(String::from("2922")).is_err());
-        assert!(Mesh1::new(String::from("3021")).is_err());
-        assert!(Mesh1::new(String::from("6922")).is_err());
-        assert!(Mesh1::new(String::from("6821")).is_err());
+        assert!(Mesh1::new(String::from("6954")).is_err()); // 北東端の1つ北側
+        assert!(Mesh1::new(String::from("6855")).is_err()); // 北東端の1つ東側
+        assert!(Mesh1::new(String::from("2954")).is_err()); // 南東端の1つ南側
+        assert!(Mesh1::new(String::from("3055")).is_err()); // 南東端の1つ東側
+        assert!(Mesh1::new(String::from("2922")).is_err()); // 南西端の1つ南側
+        assert!(Mesh1::new(String::from("3021")).is_err()); // 南西端の1つ西側
+        assert!(Mesh1::new(String::from("6922")).is_err()); // 北西端の1つ北側
+        assert!(Mesh1::new(String::from("6821")).is_err()); // 北西端の1つ西側
     }
 
     #[test]
     fn mesh1_from_coordinate_ok() {
-        let nw = Coordinate::new(NORTHERNMOST, WESTERNMOST).unwrap();
-        let ne = Coordinate::new(NORTHERNMOST, EASTERNMOST).unwrap();
-        let sw = Coordinate::new(SOUTHERNMOST, WESTERNMOST).unwrap();
-        let se = Coordinate::new(SOUTHERNMOST, EASTERNMOST).unwrap();
-
-        let n = (NORTHERNMOST * 1.5) as u8;
-        let e = (EASTERNMOST - 100.0) as u8;
-        let s = (SOUTHERNMOST * 1.5) as u8;
-        let w = (WESTERNMOST - 100.0) as u8;
-
-        let data = vec![
-            (nw, format!("{:02}{:02}", n, w)),
-            (ne, format!("{:02}{:02}", n, e)),
-            (sw, format!("{:02}{:02}", s, w)),
-            (se, format!("{:02}{:02}", s, e)),
+        let inputs = vec![
+            // 北東端のメッシュの中心座標
+            (
+                Coordinate::new(
+                    NORTHERNMOST - MESH1_LAT_DIFF / 2.0,
+                    EASTERNMOST - MESH1_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "6854",
+            ),
+            // 南東端のメッシュの中心座標
+            (
+                Coordinate::new(
+                    SOUTHERNMOST + MESH1_LAT_DIFF / 2.0,
+                    EASTERNMOST - MESH1_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "3054",
+            ),
+            // 南西端のメッシュの中心座標
+            (
+                Coordinate::new(
+                    SOUTHERNMOST + MESH1_LAT_DIFF / 2.0,
+                    WESTERNMOST + MESH1_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "3022",
+            ),
+            // 北西端のメッシュの中心座標
+            (
+                Coordinate::new(
+                    NORTHERNMOST - MESH1_LAT_DIFF / 2.0,
+                    WESTERNMOST + MESH1_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "6822",
+            ),
+            // 東京付近のメッシュの中心座標
+            (
+                Coordinate::new(
+                    35.0 + 20.0 / 60.0 + MESH1_LAT_DIFF / 2.0,
+                    139.0 + MESH1_LON_DIFF / 2.0,
+                )
+                .unwrap(),
+                "5339",
+            ),
         ];
-        for (coord, code) in data {
+        for (coord, code) in inputs {
             let mesh = Mesh1::from_coordinate(coord.to_owned()).unwrap();
             assert_eq!(
                 code,
