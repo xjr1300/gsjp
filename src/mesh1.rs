@@ -135,12 +135,11 @@ pub(crate) fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::tests::eq_f64;
     use crate::{
         Coordinate, NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST,
     };
-
-    use super::*;
 
     #[test]
     fn mesh1_new_ok() {
