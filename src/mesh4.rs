@@ -173,10 +173,8 @@ pub(crate) fn validate_mesh4_code(code: &str) -> Result<(), GSJPError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        tests::{eq_f64, EPSILON},
-        NeighborDirection,
-    };
+    use crate::tests::{eq_f64, EPSILON};
+    use crate::NeighborDirection;
 
     #[test]
     fn mesh4_new_ok() {
@@ -490,18 +488,18 @@ mod tests {
     #[test]
     fn mesh4_is_neighbor_ok() {
         let inputs = vec![
-            ("51354635", "51354645", NeighborDirection::North),
-            ("51354635", "51354636", NeighborDirection::East),
-            ("51354635", "51354625", NeighborDirection::South),
-            ("51354635", "51354634", NeighborDirection::West),
-            ("51357090", "52350000", NeighborDirection::North),
-            ("51350709", "51360000", NeighborDirection::East),
-            ("51350000", "50357090", NeighborDirection::South),
-            ("51350000", "51340709", NeighborDirection::West),
+            ("513546351", "513546353", NeighborDirection::North),
+            ("513546351", "513546352", NeighborDirection::East),
+            ("513546351", "513546253", NeighborDirection::South),
+            ("513546351", "513546342", NeighborDirection::West),
+            ("513570903", "523500001", NeighborDirection::North),
+            ("513507092", "513600001", NeighborDirection::East),
+            ("513500001", "503570903", NeighborDirection::South),
+            ("513500001", "513407092", NeighborDirection::West),
         ];
         for (code1, code2, expected) in inputs {
-            let mesh1 = Mesh3::new(String::from(code1)).unwrap();
-            let mesh2 = Mesh3::new(String::from(code2)).unwrap();
+            let mesh1 = Mesh4::new(String::from(code1)).unwrap();
+            let mesh2 = Mesh4::new(String::from(code2)).unwrap();
             assert_eq!(
                 expected,
                 mesh1.is_neighboring(&mesh2).unwrap(),
