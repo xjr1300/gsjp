@@ -159,22 +159,22 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh3_new_ok() {
-        assert!(Mesh3::new(String::from("68547799")).is_ok());
-        assert!(Mesh3::new(String::from("30540709")).is_ok());
-        assert!(Mesh3::new(String::from("30220000")).is_ok());
-        assert!(Mesh3::new(String::from("68227090")).is_ok());
+        assert!(Mesh3::new(String::from("71497799")).is_ok(), "71497799");
+        assert!(Mesh3::new(String::from("30490709")).is_ok(), "30490709");
+        assert!(Mesh3::new(String::from("30490000")).is_ok(), "30490000");
+        assert!(Mesh3::new(String::from("71497090")).is_ok(), "71497090");
     }
 
     #[test]
     fn mesh3_new_err() {
-        assert!(Mesh3::new(String::from("69540709")).is_err());
-        assert!(Mesh3::new(String::from("68557090")).is_err());
-        assert!(Mesh3::new(String::from("29547799")).is_err());
-        assert!(Mesh3::new(String::from("30550000")).is_err());
-        assert!(Mesh3::new(String::from("29227090")).is_err());
-        assert!(Mesh3::new(String::from("30210709")).is_err());
-        assert!(Mesh3::new(String::from("69220000")).is_err());
-        assert!(Mesh3::new(String::from("68217799")).is_err());
+        assert!(Mesh3::new(String::from("72490709")).is_err(), "72490709");
+        assert!(Mesh3::new(String::from("71507090")).is_err(), "71507090");
+        assert!(Mesh3::new(String::from("29497799")).is_err(), "29497799");
+        assert!(Mesh3::new(String::from("30500000")).is_err(), "30500000");
+        assert!(Mesh3::new(String::from("29187090")).is_err(), "29187090");
+        assert!(Mesh3::new(String::from("30170709")).is_err(), "30170709");
+        assert!(Mesh3::new(String::from("72180000")).is_err(), "72180000");
+        assert!(Mesh3::new(String::from("71170709")).is_err(), "71170709");
     }
 
     #[test]
@@ -478,7 +478,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh3_north_mesh_err() {
-        let mesh = Mesh3::new(String::from("68227090")).unwrap();
+        let mesh = Mesh3::new(String::from("71497090")).unwrap();
         assert!(mesh.north_mesh().is_err());
     }
 
@@ -498,7 +498,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh3_east_mesh_err() {
-        let mesh = Mesh3::new(String::from("30540709")).unwrap();
+        let mesh = Mesh3::new(String::from("30490709")).unwrap();
         assert!(mesh.east_mesh().is_err());
     }
 
@@ -518,7 +518,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh3_south_mesh_err() {
-        let mesh = Mesh3::new(String::from("30220000")).unwrap();
+        let mesh = Mesh3::new(String::from("30180000")).unwrap();
         assert!(mesh.south_mesh().is_err());
     }
 
@@ -538,7 +538,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh3_west_mesh_err() {
-        let mesh = Mesh3::new(String::from("30220000")).unwrap();
+        let mesh = Mesh3::new(String::from("30180000")).unwrap();
         assert!(mesh.west_mesh().is_err());
     }
 

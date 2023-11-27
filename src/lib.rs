@@ -14,22 +14,14 @@ pub use mesh4::Mesh4;
 pub use mesh5::Mesh5;
 pub use mesh6::Mesh6;
 
-/// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
-/// | 区分 | 場所 | 経度 | 緯度 |
-/// | --- | --- | --- | --- |
-/// | 最東端 | 東京都 南鳥島 | 153°59′12″ | 24°16′59″ |
-/// | 最西端 | 沖縄県 与那国島 | 122°55′57″ | 24°27′05″ |
-/// | 最南端 | 東京都 沖ノ鳥島| 136°04′11″ | 20°25′31″ |
-/// | 最北端 | 北海道 択捉島 | 148°45′08″ | 45°33′26″ |
-///
-/// メッシュの北端の緯度（度単位）
-pub const NORTHERNMOST: f64 = 46.0;
-/// メッシュの南端の緯度（度単位）
+/// メッシュの北端の緯度（度単位: GRIB2範囲）
+pub const NORTHERNMOST: f64 = 48.0;
+/// メッシュの南端の緯度（度単位: GRIB2範囲）
 pub const SOUTHERNMOST: f64 = 20.0;
-/// メッシュの東端の経度（度単位）
-pub const EASTERNMOST: f64 = 155.0;
-/// メッシュの西端の経度（度単位）
-pub const WESTERNMOST: f64 = 122.0;
+/// メッシュの東端の経度（度単位: GRIB2範囲）
+pub const EASTERNMOST: f64 = 150.0;
+/// メッシュの西端の経度（度単位: GRIB2範囲）
+pub const WESTERNMOST: f64 = 118.0;
 
 /// メッシュトレイト
 pub trait Mesh: Sized {

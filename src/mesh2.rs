@@ -169,24 +169,25 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh2_new_err() {
-        assert!(Mesh2::new(String::from("695480")).is_err());
-        assert!(Mesh2::new(String::from("695408")).is_err());
-        // 北東端の1つ北側の第2次地域区画
-        assert!(Mesh2::new(String::from("695407")).is_err());
-        // 北東端の1つ東側の第2次地域区画
-        assert!(Mesh2::new(String::from("685570")).is_err());
-        // 南東端の1つ南側の第2次地域区画
-        assert!(Mesh2::new(String::from("295477")).is_err());
-        // 南東端の1つ東側の第2次地域区画
-        assert!(Mesh2::new(String::from("305500")).is_err());
-        // 南西端の1つ南側の第2次地域区画
-        assert!(Mesh2::new(String::from("292270")).is_err());
-        // 南西端の1つ西側の第2次地域区画
-        assert!(Mesh2::new(String::from("302107")).is_err());
-        // 北西端の1つ北側の第2次地域区画
-        assert!(Mesh2::new(String::from("692200")).is_err());
-        // 北西端の1つ西側の第2次地域区画
-        assert!(Mesh2::new(String::from("682107")).is_err());
+        // 下位2桁の数値が不正
+        assert!(Mesh2::new(String::from("695480")).is_err(), "695480");
+        assert!(Mesh2::new(String::from("695408")).is_err(), "695408");
+        // 最北東端(714977)の1つ北側の第2次地域区画
+        assert!(Mesh2::new(String::from("724907")).is_err(), "724907");
+        // 最北東端の1つ東側の第2次地域区画
+        assert!(Mesh2::new(String::from("725070")).is_err(), "725070");
+        // 最南東端(304907)の1つ南側の第2次地域区画
+        assert!(Mesh2::new(String::from("294977")).is_err(), "304877");
+        // 最南東端の1つ東側の第2次地域区画
+        assert!(Mesh2::new(String::from("305000")).is_err(), "305000");
+        // 最南西端(301800)の1つ南側の第2次地域区画
+        assert!(Mesh2::new(String::from("291870")).is_err(), "291870");
+        // 最南西端の1つ西側の第2次地域区画
+        assert!(Mesh2::new(String::from("301707")).is_err(), "301707");
+        // 最北西端(711870)の1つ北側の第2次地域区画
+        assert!(Mesh2::new(String::from("721800")).is_err(), "721800");
+        // 最北西端の1つ西側の第2次地域区画
+        assert!(Mesh2::new(String::from("711777")).is_err(), "711777");
     }
 
     #[test]
@@ -456,8 +457,12 @@ pub(crate) mod tests {
     }
 
     #[test]
+    #[rustfmt::skip]
     fn mesh2_north_mesh_ok() {
-        let input = vec![("513546", "513556"), ("513576", "523506")];
+        let input = vec![
+            ("714967", "714977"),
+            ("301800", "301810"),
+        ];
         for (code, expected) in input {
             let mesh = Mesh2::new(String::from(code)).unwrap();
             let north_mesh = mesh.north_mesh().unwrap();
@@ -467,13 +472,17 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh2_north_mesh_err() {
-        let mesh = Mesh2::new(String::from("682270")).unwrap();
+        let mesh = Mesh2::new(String::from("714977")).unwrap();
         assert!(mesh.north_mesh().is_err());
     }
 
     #[test]
+    #[rustfmt::skip]
     fn mesh2_east_mesh_ok() {
-        let input = vec![("513546", "513547"), ("513547", "513640")];
+        let input = vec![
+            ("513546", "513547"),
+            ("513547", "513640"),
+        ];
         for (code, expected) in input {
             let mesh = Mesh2::new(String::from(code)).unwrap();
             let east_mesh = mesh.east_mesh().unwrap();
@@ -483,7 +492,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh2_east_mesh_err() {
-        let mesh = Mesh2::new(String::from("305407")).unwrap();
+        let mesh = Mesh2::new(String::from("304907")).unwrap();
         assert!(mesh.east_mesh().is_err());
     }
 
@@ -515,7 +524,7 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh2_west_mesh_err() {
-        let mesh = Mesh2::new(String::from("302200")).unwrap();
+        let mesh = Mesh2::new(String::from("301800")).unwrap();
         assert!(mesh.west_mesh().is_err());
     }
 
