@@ -55,12 +55,12 @@ impl Mesh for Mesh1 {
         self.south() + MESH1_LAT_DIFF
     }
 
-    fn south(&self) -> f64 {
-        self.code[0..2].parse::<f64>().unwrap() / 1.5
-    }
-
     fn east(&self) -> f64 {
         self.west() + MESH1_LON_DIFF
+    }
+
+    fn south(&self) -> f64 {
+        self.code[0..2].parse::<f64>().unwrap() / 1.5
     }
 
     fn west(&self) -> f64 {
@@ -249,6 +249,18 @@ mod tests {
     }
 
     #[test]
+    fn mesh1_east_ok() {
+        let mesh = Mesh1::new(String::from("3022")).unwrap();
+        let expected = 122.0 + MESH1_LON_DIFF;
+        assert!(
+            eq_f64(expected, mesh.east()),
+            "expected: {}, actual: {}",
+            expected,
+            mesh.north()
+        );
+    }
+
+    #[test]
     fn mesh1_south_ok() {
         let mesh = Mesh1::new(String::from("3022")).unwrap();
         let expected = 30.0 / 1.5;
@@ -266,18 +278,6 @@ mod tests {
         let expected = 122.0;
         assert!(
             eq_f64(expected, mesh.west()),
-            "expected: {}, actual: {}",
-            expected,
-            mesh.north()
-        );
-    }
-
-    #[test]
-    fn mesh1_east_ok() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
-        let expected = 122.0 + MESH1_LON_DIFF;
-        assert!(
-            eq_f64(expected, mesh.east()),
             "expected: {}, actual: {}",
             expected,
             mesh.north()

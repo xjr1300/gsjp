@@ -58,13 +58,13 @@ impl Mesh for Mesh3 {
         self.south() + MESH3_LAT_DIFF
     }
 
+    fn east(&self) -> f64 {
+        self.west() + MESH3_LON_DIFF
+    }
+
     fn south(&self) -> f64 {
         self.mesh2().south()
             + MESH3_LAT_DIFF * self.code.chars().nth(6).unwrap().to_digit(10).unwrap() as f64
-    }
-
-    fn east(&self) -> f64 {
-        self.west() + MESH3_LON_DIFF
     }
 
     fn west(&self) -> f64 {
@@ -152,13 +152,10 @@ pub(crate) fn validate_mesh3_code(code: &str) -> Result<(), GSJPError> {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::{
-        mesh2::tests::{mesh2_south, mesh2_west},
-        tests::eq_f64,
-        NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST,
-    };
-
     use super::*;
+    use crate::mesh2::tests::{mesh2_south, mesh2_west};
+    use crate::tests::{eq_f64, EPSILON};
+    use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
     #[test]
     fn mesh3_new_ok() {
@@ -199,8 +196,8 @@ pub(crate) mod tests {
             // 東京タワーを含むメッシュの北東端
             (
                 Coordinate::new(
-                    mesh2.north() - 1e-8,
-                    mesh2.east() - 1e-8,
+                    mesh2.north() - EPSILON,
+                    mesh2.east() - EPSILON,
                 ).unwrap(),
                 "53393599",
                 "北東端"
@@ -218,8 +215,8 @@ pub(crate) mod tests {
             // 東京タワーを含むメッシュの南東端
             (
                 Coordinate::new(
-                    mesh2.south() + 1e-8,
-                    mesh2.east() - 1e-8,
+                    mesh2.south() + EPSILON,
+                    mesh2.east() - EPSILON,
                 ).unwrap(),
                 "53393509",
                 "南東端"
@@ -237,8 +234,8 @@ pub(crate) mod tests {
             // 東京タワーを含むメッシュの南西端
             (
                 Coordinate::new(
-                    mesh2.south() + 1e-8,
-                    mesh2.west() + 1e-8,
+                    mesh2.south() + EPSILON,
+                    mesh2.west() + EPSILON,
                 ).unwrap(),
                 "53393500",
                 "南西端"
@@ -256,8 +253,8 @@ pub(crate) mod tests {
             // 東京タワーを含むメッシュの北西端
             (
                 Coordinate::new(
-                    mesh2.north() - 1e-8,
-                    mesh2.west() + 1e-8,
+                    mesh2.north() - EPSILON,
+                    mesh2.west() + EPSILON,
                 ).unwrap(),
                 "53393590",
                 "北西端"

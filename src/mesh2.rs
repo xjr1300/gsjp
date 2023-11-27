@@ -48,13 +48,13 @@ impl Mesh for Mesh2 {
         self.south() + MESH2_LAT_DIFF
     }
 
+    fn east(&self) -> f64 {
+        self.west() + MESH2_LON_DIFF
+    }
+
     fn south(&self) -> f64 {
         self.mesh1().south()
             + MESH2_LAT_DIFF * self.code.chars().nth(4).unwrap().to_digit(10).unwrap() as f64
-    }
-
-    fn east(&self) -> f64 {
-        self.west() + MESH2_LON_DIFF
     }
 
     fn west(&self) -> f64 {
@@ -151,10 +151,9 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::tests::eq_f64;
-    use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
-
     use super::*;
+    use crate::tests::{eq_f64, EPSILON};
+    use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
     #[test]
     fn mesh2_new_ok() {
@@ -170,6 +169,8 @@ pub(crate) mod tests {
 
     #[test]
     fn mesh2_new_err() {
+        assert!(Mesh2::new(String::from("695480")).is_err());
+        assert!(Mesh2::new(String::from("695408")).is_err());
         // 北東端の1つ北側の第2次地域区画
         assert!(Mesh2::new(String::from("695407")).is_err());
         // 北東端の1つ東側の第2次地域区画
@@ -204,8 +205,8 @@ pub(crate) mod tests {
             // 東京付近の第1次地域区画の北東端の第2次地域区画
             (
                 Coordinate::new(
-                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0  - 1e-8,
-                    139.0 + MESH2_LON_DIFF * 8.0 - 1e-8,
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0  - EPSILON,
+                    139.0 + MESH2_LON_DIFF * 8.0 - EPSILON,
                 )
                 .unwrap(),
                 "533977",
@@ -221,8 +222,8 @@ pub(crate) mod tests {
             // 東京付近の第1次地域区画の南東端の第2次地域区画
             (
                 Coordinate::new(
-                    35.0 + 20.0 / 60.0 + 1e-8,
-                    139.0 + MESH2_LON_DIFF * 8.0 - 1e-8,
+                    35.0 + 20.0 / 60.0 + EPSILON,
+                    139.0 + MESH2_LON_DIFF * 8.0 - EPSILON,
                 ).unwrap(),
                 "533907",
             ),
@@ -237,8 +238,8 @@ pub(crate) mod tests {
             // 東京付近の第1次地域区画の南西端の第2次地域区画
             (
                 Coordinate::new(
-                    35.0 + 20.0 / 60.0 + 1e-8,
-                    139.0 + 1e-8,
+                    35.0 + 20.0 / 60.0 + EPSILON,
+                    139.0 + EPSILON,
                 ).unwrap(),
                 "533900"
             ),
@@ -253,8 +254,8 @@ pub(crate) mod tests {
             // 東京付近の第1次地域区画の北西端の第2次地域区画
             (
                 Coordinate::new(
-                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0 - 1e-8,
-                    139.0 + 1e-8,
+                    35.0 + 20.0 / 60.0 + MESH2_LAT_DIFF * 8.0 - EPSILON,
+                    139.0 + EPSILON,
                 ).unwrap(),
                 "533970",
             ),
@@ -311,6 +312,19 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn mesh2_east_ok() {
+        let code = "513546";
+        let mesh = Mesh2::new(String::from(code)).unwrap();
+        let expected = mesh2_west(code) + MESH2_LON_DIFF;
+        assert!(
+            eq_f64(mesh.east(), expected),
+            "expected: {}, actual: {}",
+            expected,
+            mesh.east()
+        );
+    }
+
+    #[test]
     fn mesh2_south_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
@@ -333,19 +347,6 @@ pub(crate) mod tests {
             "expected: {}, actual: {}",
             expected,
             mesh.west()
-        );
-    }
-
-    #[test]
-    fn mesh2_east_ok() {
-        let code = "513546";
-        let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh2_west(code) + MESH2_LON_DIFF;
-        assert!(
-            eq_f64(mesh.east(), expected),
-            "expected: {}, actual: {}",
-            expected,
-            mesh.east()
         );
     }
 
