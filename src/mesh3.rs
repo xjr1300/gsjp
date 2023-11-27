@@ -58,13 +58,13 @@ impl Mesh for Mesh3 {
         self.south() + MESH3_LAT_DIFF
     }
 
+    fn east(&self) -> f64 {
+        self.west() + MESH3_LON_DIFF
+    }
+
     fn south(&self) -> f64 {
         self.mesh2().south()
             + MESH3_LAT_DIFF * self.code.chars().nth(6).unwrap().to_digit(10).unwrap() as f64
-    }
-
-    fn east(&self) -> f64 {
-        self.west() + MESH3_LON_DIFF
     }
 
     fn west(&self) -> f64 {

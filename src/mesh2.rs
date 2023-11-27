@@ -48,13 +48,13 @@ impl Mesh for Mesh2 {
         self.south() + MESH2_LAT_DIFF
     }
 
+    fn east(&self) -> f64 {
+        self.west() + MESH2_LON_DIFF
+    }
+
     fn south(&self) -> f64 {
         self.mesh1().south()
             + MESH2_LAT_DIFF * self.code.chars().nth(4).unwrap().to_digit(10).unwrap() as f64
-    }
-
-    fn east(&self) -> f64 {
-        self.west() + MESH2_LON_DIFF
     }
 
     fn west(&self) -> f64 {
@@ -312,6 +312,19 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn mesh2_east_ok() {
+        let code = "513546";
+        let mesh = Mesh2::new(String::from(code)).unwrap();
+        let expected = mesh2_west(code) + MESH2_LON_DIFF;
+        assert!(
+            eq_f64(mesh.east(), expected),
+            "expected: {}, actual: {}",
+            expected,
+            mesh.east()
+        );
+    }
+
+    #[test]
     fn mesh2_south_ok() {
         let code = "513546";
         let mesh = Mesh2::new(String::from(code)).unwrap();
@@ -334,19 +347,6 @@ pub(crate) mod tests {
             "expected: {}, actual: {}",
             expected,
             mesh.west()
-        );
-    }
-
-    #[test]
-    fn mesh2_east_ok() {
-        let code = "513546";
-        let mesh = Mesh2::new(String::from(code)).unwrap();
-        let expected = mesh2_west(code) + MESH2_LON_DIFF;
-        assert!(
-            eq_f64(mesh.east(), expected),
-            "expected: {}, actual: {}",
-            expected,
-            mesh.east()
         );
     }
 
