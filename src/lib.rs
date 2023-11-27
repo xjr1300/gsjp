@@ -5,12 +5,14 @@ mod mesh2;
 mod mesh3;
 mod mesh4;
 mod mesh5;
+mod mesh6;
 
 pub use mesh1::Mesh1;
 pub use mesh2::Mesh2;
 pub use mesh3::Mesh3;
 pub use mesh4::Mesh4;
 pub use mesh5::Mesh5;
+pub use mesh6::Mesh6;
 
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
