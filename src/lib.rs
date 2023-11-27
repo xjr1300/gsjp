@@ -3,10 +3,12 @@ use std::borrow::Cow;
 mod mesh1;
 mod mesh2;
 mod mesh3;
+mod mesh4;
 
 pub use mesh1::Mesh1;
 pub use mesh2::Mesh2;
 pub use mesh3::Mesh3;
+pub use mesh4::Mesh4;
 
 /// <https://www.gsi.go.jp/KOKUJYOHO/center.htm>
 /// | 区分 | 場所 | 経度 | 緯度 |
@@ -352,8 +354,11 @@ pub(crate) fn contains_coordinate(coord: &Coordinate) -> Result<(), GSJPError> {
 pub(crate) mod tests {
     use super::*;
 
-    pub fn eq_f64(expected: f64, actual: f64) -> bool {
-        (expected - actual).abs() < 1e-8
+    // use std::f64::EPSILON;
+    pub(crate) const EPSILON: f64 = 1e-8;
+
+    pub(crate) fn eq_f64(expected: f64, actual: f64) -> bool {
+        (expected - actual).abs() < EPSILON
     }
 
     #[test]
@@ -364,8 +369,8 @@ pub(crate) mod tests {
 
     #[test]
     fn validate_lat_err() {
-        assert!(validate_lat(90.0 + 1e-8).is_err());
-        assert!(validate_lat(-90.0 - 1e-8).is_err());
+        assert!(validate_lat(90.0 + EPSILON).is_err());
+        assert!(validate_lat(-90.0 - EPSILON).is_err());
     }
 
     #[test]
@@ -376,8 +381,8 @@ pub(crate) mod tests {
 
     #[test]
     fn validate_lon_err() {
-        assert!(validate_lon(-180.0 - 1e-8).is_err());
-        assert!(validate_lon(180.0 + 1e-8).is_err());
+        assert!(validate_lon(-180.0 - EPSILON).is_err());
+        assert!(validate_lon(180.0 + EPSILON).is_err());
     }
 
     #[test]
@@ -390,10 +395,10 @@ pub(crate) mod tests {
 
     #[test]
     fn coordinate_new_err() {
-        assert!(Coordinate::new(90.0 + 1e-8, -180.0).is_err());
-        assert!(Coordinate::new(90.0, -180.0 - 1e-8).is_err());
-        assert!(Coordinate::new(-90.0 - 1e-8, 180.0).is_err());
-        assert!(Coordinate::new(-90.0, 180.0 + 1e-8).is_err());
+        assert!(Coordinate::new(90.0 + EPSILON, -180.0).is_err());
+        assert!(Coordinate::new(90.0, -180.0 - EPSILON).is_err());
+        assert!(Coordinate::new(-90.0 - EPSILON, 180.0).is_err());
+        assert!(Coordinate::new(-90.0, 180.0 + EPSILON).is_err());
     }
 
     #[test]
@@ -407,27 +412,27 @@ pub(crate) mod tests {
     fn contains_coordinate_ok() {
         assert!(contains_coordinate(&Coordinate::new(SOUTHERNMOST, WESTERNMOST).unwrap()).is_ok());
         assert!(contains_coordinate(
-            &Coordinate::new(NORTHERNMOST + 1.0 - 1e-8, EASTERNMOST + 1.0 - 1e-8).unwrap()
+            &Coordinate::new(NORTHERNMOST + 1.0 - EPSILON, EASTERNMOST + 1.0 - EPSILON).unwrap()
         )
         .is_ok());
     }
 
     #[test]
     fn contains_coordinate_err() {
-        assert!(
-            contains_coordinate(&Coordinate::new(SOUTHERNMOST - 1e-8, WESTERNMOST).unwrap())
-                .is_err()
-        );
-        assert!(
-            contains_coordinate(&Coordinate::new(SOUTHERNMOST, WESTERNMOST - 1e-8).unwrap())
-                .is_err()
-        );
         assert!(contains_coordinate(
-            &Coordinate::new(NORTHERNMOST + 1.0, EASTERNMOST + 1.0 - 1e-8).unwrap()
+            &Coordinate::new(SOUTHERNMOST - EPSILON, WESTERNMOST).unwrap()
         )
         .is_err());
         assert!(contains_coordinate(
-            &Coordinate::new(NORTHERNMOST + 1.0 - 1e-8, EASTERNMOST + 1.0).unwrap()
+            &Coordinate::new(SOUTHERNMOST, WESTERNMOST - EPSILON).unwrap()
+        )
+        .is_err());
+        assert!(contains_coordinate(
+            &Coordinate::new(NORTHERNMOST + 1.0, EASTERNMOST + 1.0 - EPSILON).unwrap()
+        )
+        .is_err());
+        assert!(contains_coordinate(
+            &Coordinate::new(NORTHERNMOST + 1.0 - EPSILON, EASTERNMOST + 1.0).unwrap()
         )
         .is_err());
     }
