@@ -116,14 +116,14 @@ pub(crate) fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
     let lat = &code[0..2];
     let lon = &code[2..4];
 
-    // 緯度の範囲を20度から46度までとして、緯度部分を検証
+    // 緯度部分を検証
     let lat_min = ((SOUTHERNMOST * 1.5) as u8).to_string();
     let lat_max = (((NORTHERNMOST - MESH1_LAT_DIFF) * 1.5) as u8).to_string();
     if lat < &lat_min || lat > &lat_max {
         return Err(GSJPError::InvalidMeshCode);
     }
 
-    // 経度の範囲を122度から154度までとして、経度部分を検証
+    // 経度部分を検証
     let lon_min = (WESTERNMOST as u8 % 100).to_string();
     let lon_max = ((EASTERNMOST - MESH1_LON_DIFF) as u8 % 100).to_string();
     if lon < &lon_min || lon > &lon_max {
@@ -143,62 +143,76 @@ mod tests {
 
     #[test]
     fn mesh1_new_ok() {
-        assert!(Mesh1::new(String::from("6854")).is_ok()); // 北東端
-        assert!(Mesh1::new(String::from("3054")).is_ok()); // 南東端
-        assert!(Mesh1::new(String::from("3022")).is_ok()); // 南西端
-        assert!(Mesh1::new(String::from("6822")).is_ok()); // 北西端
+        // 第1次地域区画の最北東端メッシュコードは、次の通り。
+        // (48.0 - 40.0 / 60.0) * 1.5 = 71.0
+        // 150.0 - 1.0 - 100.0 = 49.0
+        // よって、メッシュコードは、7149となる。
+        //
+        // 第1次地域区画の最南東端メッシュコードは、次の通り。
+        // 20.0 * 1.5 = 30.0
+        // 150.0 - 1.0 - 100.0 = 49.0
+        // よって、メッシュコードは、3049となる。
+        //
+        // 第1次地域区画の最南西端メッシュコードは、次の通り。
+        // 20.0 * 1.5 = 30.0
+        // 118.0 - 100.0 = 18.0
+        // よって、メッシュコードは、3018となる。
+        assert!(Mesh1::new(String::from("7149")).is_ok()); // 最北東端
+        assert!(Mesh1::new(String::from("3049")).is_ok()); // 最南東端
+        assert!(Mesh1::new(String::from("3018")).is_ok()); // 最南西端
+        assert!(Mesh1::new(String::from("7118")).is_ok()); // 北西端
     }
 
     #[test]
     fn mesh1_new_err() {
-        assert!(Mesh1::new(String::from("6954")).is_err()); // 北東端の1つ北側
-        assert!(Mesh1::new(String::from("6855")).is_err()); // 北東端の1つ東側
-        assert!(Mesh1::new(String::from("2954")).is_err()); // 南東端の1つ南側
-        assert!(Mesh1::new(String::from("3055")).is_err()); // 南東端の1つ東側
-        assert!(Mesh1::new(String::from("2922")).is_err()); // 南西端の1つ南側
-        assert!(Mesh1::new(String::from("3021")).is_err()); // 南西端の1つ西側
-        assert!(Mesh1::new(String::from("6922")).is_err()); // 北西端の1つ北側
-        assert!(Mesh1::new(String::from("6821")).is_err()); // 北西端の1つ西側
+        assert!(Mesh1::new(String::from("7249")).is_err()); // 最北東端の1つ北側
+        assert!(Mesh1::new(String::from("7150")).is_err()); // 最北東端の1つ東側
+        assert!(Mesh1::new(String::from("2949")).is_err()); // 最南東端の1つ南側
+        assert!(Mesh1::new(String::from("3050")).is_err()); // 最南東端の1つ東側
+        assert!(Mesh1::new(String::from("2918")).is_err()); // 最南西端の1つ南側
+        assert!(Mesh1::new(String::from("3017")).is_err()); // 最南西端の1つ西側
+        assert!(Mesh1::new(String::from("7218")).is_err()); // 最北西端の1つ北側
+        assert!(Mesh1::new(String::from("7217")).is_err()); // 最北西端の1つ西側
     }
 
     #[test]
     fn mesh1_from_coordinate_ok() {
         let inputs = vec![
-            // 北東端のメッシュの中心座標
+            // 最北東端のメッシュの中心座標
             (
                 Coordinate::new(
                     NORTHERNMOST - MESH1_LAT_DIFF / 2.0,
                     EASTERNMOST - MESH1_LON_DIFF / 2.0,
                 )
                 .unwrap(),
-                "6854",
+                "7149",
             ),
-            // 南東端のメッシュの中心座標
+            // 最南東端のメッシュの中心座標
             (
                 Coordinate::new(
                     SOUTHERNMOST + MESH1_LAT_DIFF / 2.0,
                     EASTERNMOST - MESH1_LON_DIFF / 2.0,
                 )
                 .unwrap(),
-                "3054",
+                "3049",
             ),
-            // 南西端のメッシュの中心座標
+            // 最南西端のメッシュの中心座標
             (
                 Coordinate::new(
                     SOUTHERNMOST + MESH1_LAT_DIFF / 2.0,
                     WESTERNMOST + MESH1_LON_DIFF / 2.0,
                 )
                 .unwrap(),
-                "3022",
+                "3018",
             ),
-            // 北西端のメッシュの中心座標
+            // 最北西端のメッシュの中心座標
             (
                 Coordinate::new(
                     NORTHERNMOST - MESH1_LAT_DIFF / 2.0,
                     WESTERNMOST + MESH1_LON_DIFF / 2.0,
                 )
                 .unwrap(),
-                "6822",
+                "7118",
             ),
             // 東京付近のメッシュの中心座標
             (
@@ -384,27 +398,27 @@ mod tests {
 
     #[test]
     fn mesh1_north_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
+        let mesh = Mesh1::new(String::from("7022")).unwrap();
         let n_mesh = mesh.north_mesh().unwrap();
-        assert_eq!("3122", n_mesh.code());
+        assert_eq!("7122", n_mesh.code());
     }
 
     #[test]
     fn mesh1_north_mesh_err() {
-        let mesh = Mesh1::new(String::from("6822")).unwrap();
+        let mesh = Mesh1::new(String::from("7118")).unwrap();
         assert!(mesh.north_mesh().is_err());
     }
 
     #[test]
     fn mesh1_east_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
+        let mesh = Mesh1::new(String::from("3048")).unwrap();
         let e_mesh = mesh.east_mesh().unwrap();
-        assert_eq!("3023", e_mesh.code());
+        assert_eq!("3049", e_mesh.code());
     }
 
     #[test]
     fn mesh1_east_mesh_err() {
-        let mesh = Mesh1::new(String::from("3054")).unwrap();
+        let mesh = Mesh1::new(String::from("3049")).unwrap();
         assert!(mesh.east_mesh().is_err());
     }
 
@@ -417,20 +431,20 @@ mod tests {
 
     #[test]
     fn mesh1_south_mesh_err() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
+        let mesh = Mesh1::new(String::from("3049")).unwrap();
         assert!(mesh.south_mesh().is_err());
     }
 
     #[test]
     fn mesh1_west_mesh_ok() {
-        let mesh = Mesh1::new(String::from("3023")).unwrap();
+        let mesh = Mesh1::new(String::from("3019")).unwrap();
         let w_mesh = mesh.west_mesh().unwrap();
-        assert_eq!("3022", w_mesh.code());
+        assert_eq!("3018", w_mesh.code());
     }
 
     #[test]
     fn mesh1_west_mesh_err() {
-        let mesh = Mesh1::new(String::from("3022")).unwrap();
+        let mesh = Mesh1::new(String::from("3018")).unwrap();
         assert!(mesh.west_mesh().is_err());
     }
 
