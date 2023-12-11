@@ -1,0 +1,7 @@
+[package]
+name = "meshshp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gsjp = { path = "../gsjp" }
