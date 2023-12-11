@@ -10,6 +10,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "meshshp"
+version = "0.1.0"
+dependencies = [
+ "gsjp",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
