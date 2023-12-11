@@ -1,4 +1,4 @@
-use crate::{
+use crate::mesh::{
     contains_coordinate, Coordinate, GSJPError, Mesh, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST,
     WESTERNMOST,
 };
@@ -149,8 +149,8 @@ pub(crate) fn validate_mesh1_code(code: &str) -> Result<(), GSJPError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tests::eq_f64;
-    use crate::{
+    use crate::mesh::tests::eq_f64;
+    use crate::mesh::{
         Coordinate, NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST,
     };
 

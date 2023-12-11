@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use gsjp::{Coordinate, Mesh, Mesh1, Mesh2, Mesh3, Mesh4, Mesh5, Mesh6};
+use gsjp::mesh::{Coordinate, Mesh, Mesh1, Mesh2, Mesh3, Mesh4, Mesh5, Mesh6};
 use shapefile::dbase::{FieldName, FieldValue, Record, TableWriterBuilder};
 use shapefile::{Point, Polygon, PolygonRing, ShapeWriter};
 
