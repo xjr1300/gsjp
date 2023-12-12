@@ -1,4 +1,4 @@
-use crate::{mesh1::validate_mesh1_code, Coordinate, GSJPError, Mesh, Mesh1};
+use crate::mesh::{mesh1::validate_mesh1_code, Coordinate, GSJPError, Mesh, Mesh1};
 
 /// 第2次地域区画の南端と北端の緯度の差
 const MESH2_LAT_DIFF: f64 = 5.0 / 60.0; // 5分
@@ -152,8 +152,8 @@ pub(crate) fn validate_mesh2_code(code: &str) -> Result<(), GSJPError> {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::tests::{eq_f64, EPSILON};
-    use crate::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
+    use crate::mesh::tests::{eq_f64, EPSILON};
+    use crate::mesh::{NeighborDirection, EASTERNMOST, NORTHERNMOST, SOUTHERNMOST, WESTERNMOST};
 
     #[test]
     fn mesh2_new_ok() {
