@@ -779,11 +779,7 @@ mod tests {
                 BaseMapFrame::Level50000(code) => {
                     assert_eq!(expected, code, "expected: {}, actual: {}", expected, code)
                 }
-                _ => assert!(
-                    false,
-                    "想定していない地図情報レベルを取得しました({})。",
-                    expected
-                ),
+                _ => panic!("想定していない地図情報レベルを取得しました({})。", expected),
             }
         }
     }
@@ -824,11 +820,7 @@ mod tests {
                 BaseMapFrame::Level5000(code) => {
                     assert_eq!(expected, code, "expected: {}, actual: {}", expected, code)
                 }
-                _ => assert!(
-                    false,
-                    "想定していない地図情報レベルを取得しました({})。",
-                    expected
-                ),
+                _ => panic!("想定していない地図情報レベルを取得しました({})。", expected),
             }
         }
     }
@@ -857,11 +849,7 @@ mod tests {
                 BaseMapFrame::Level2500(code) => {
                     assert_eq!(expected, code, "expected: {}, actual: {}", expected, code)
                 }
-                _ => assert!(
-                    false,
-                    "想定していない地図情報レベルを取得しました({})。",
-                    expected
-                ),
+                _ => panic!("想定していない地図情報レベルを取得しました({})。", expected),
             }
         }
     }
@@ -892,11 +880,7 @@ mod tests {
                 BaseMapFrame::Level1000(code) => {
                     assert_eq!(expected, code, "expected: {}, actual: {}", expected, code)
                 }
-                _ => assert!(
-                    false,
-                    "想定していない地図情報レベルを取得しました({})。",
-                    expected
-                ),
+                _ => panic!("想定していない地図情報レベルを取得しました({})。", expected),
             }
         }
     }
@@ -933,11 +917,7 @@ mod tests {
                 BaseMapFrame::Level500(code) => {
                     assert_eq!(expected, code, "expected: {}, actual: {}", expected, code)
                 }
-                _ => assert!(
-                    false,
-                    "想定していない地図情報レベルを取得しました({})。",
-                    expected
-                ),
+                _ => panic!("想定していない地図情報レベルを取得しました({})。", expected),
             }
         }
     }

@@ -38,6 +38,7 @@ const MESH1_LON_DIFF: f64 = 1.0; // 1度
 /// * 南東端の第1次地域区画のメッシュコードは`3049`
 /// * 南西端の第1次地域区画のメッシュコードは`3018`
 /// * 北西端の第1次地域区画のメッシュコードは`7118`
+#[derive(Debug, Clone, PartialEq)]
 pub struct Mesh1 {
     /// メッシュコード
     code: String,
