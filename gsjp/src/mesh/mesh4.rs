@@ -10,6 +10,7 @@ const MESH4_LON_DIFF: f64 = 22.5 / 3600.0; // 22.5秒
 ///
 /// 標準地域メッシュを南北に2等分、東西に2等分した区画を示す。
 /// 2分の1地域メッシュの辺の長さは約500mである。
+#[derive(Debug, Clone, PartialEq)]
 pub struct Mesh4 {
     code: String,
 }

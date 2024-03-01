@@ -10,6 +10,7 @@ const MESH3_LON_DIFF: f64 = 45.0 / 3600.0; // 45秒
 ///
 /// 第2次地域区画を南北に10等分、東西に10等分した区画を示す。
 /// 基準地域メッシュの辺の長さは約1kmである。
+#[derive(Debug, Clone, PartialEq)]
 pub struct Mesh3 {
     code: String,
 }

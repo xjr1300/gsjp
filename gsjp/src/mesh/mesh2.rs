@@ -9,6 +9,7 @@ const MESH2_LON_DIFF: f64 = 7.0 / 60.0 + 30.0 / 3600.0; // 7分30秒
 ///
 /// 第1次地域区画を南北に8等分、東西に8等分した区画を示す。
 /// 第2次地域区画の辺の長さは約10kmである。
+#[derive(Debug, Clone, PartialEq)]
 pub struct Mesh2 {
     code: String,
 }
